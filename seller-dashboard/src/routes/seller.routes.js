@@ -1,3 +1,4 @@
+
 const express  = require('express')
 const createAuthMiddlewere  = require("../middlewares/auth.middleware")
 const controller = require("../controllers/seller.controller")
