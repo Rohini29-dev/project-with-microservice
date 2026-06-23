@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const userModel = require('../models/user.model')
 const bcrypt = require('bcryptjs')
 const redis = require('../db/redis')
-const {publishToQueue} = require('../borker/borker')
+// const {publishToQueue} = require('../borker/borker')
 
 
 async function registerUserController(req,res) {
@@ -29,19 +29,19 @@ const user = await userModel.create({
     role
 })
 
-await Promise.all([
+// await Promise.all([
 
-  publishToQueue('AUTH_NOTIFICATION.USER_CREATED',{
-    id:user.id,
-    username:user.username,
-    email:user.email,
-    fullName:user.fullName
-  }),
+//   publishToQueue('AUTH_NOTIFICATION.USER_CREATED',{
+//     id:user.id,
+//     username:user.username,
+//     email:user.email,
+//     fullName:user.fullName
+//   }),
 
-  publishToQueue('AUTH_SELLER.USER_CREATED',user)
+//   publishToQueue('AUTH_SELLER.USER_CREATED',user)
 
   
-])
+// ])
 
 
 
@@ -55,8 +55,8 @@ const token = jwt.sign({
 
 
 res.cookie("token",token,{httpOnly:true,
-    secure:true,
-    maxAge:24*60*60
+    secure:false,
+    maxAge: 24 * 60 * 60 * 1000
 })
 
 res.status(201).json({
@@ -114,8 +114,8 @@ async function loginUserController(req, res) {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      maxAge: 24 * 60 * 60,
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
@@ -135,7 +135,7 @@ async function getCurrentUser(req, res) {
       user: req.user,
     });
   } catch (error) {
-    console.log("ME ERROR 👉", error); // 👈 ADD THIS
+    console.log("ME ERROR 👉", error); // 
     res.status(500).json({
       message: "internal server error",
     });
@@ -158,7 +158,7 @@ async function logOutUser(req,res) {
             message:"user logout sucessfully"
         })
     } catch (error) {
-     console.log("ME ERROR 👉", error); // 👈 ADD THIS
+     console.log("ME ERROR 👉", error);
     res.status(500).json({
       message: "internal server error",
     });
