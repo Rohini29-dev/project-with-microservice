@@ -25,6 +25,7 @@ function createAuthMiddlewere(roles = ['user']) {
 
       
       req.user = decoded;
+// console.log(req.user);
 
       next();
 

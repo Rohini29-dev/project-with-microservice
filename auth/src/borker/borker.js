@@ -30,14 +30,14 @@ async function publishToQueue(queueName,data ={}) {
 
 
 async function subscribeToQueue(queueName,callback) {
-    if(!channel || connection) await connect()
+   if(!channel || !connection) await connect()
 
         await channel.assertQueue(queueName,{
             durable:true
         });
         channel.consume(queueName,async(msg)=>{
             if(msg !== null ){
-                const data = JSON.parse(msg.connect.toString());
+                const data = JSON.parse(msg.content.toString());
                await callback(data)
                 channel.ack(data)
             }

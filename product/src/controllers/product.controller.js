@@ -149,7 +149,6 @@ async function updateProduct(req, res) {
         message: "Forbidden: you can only update your own product"
       });
     }
-
     for (const key of Object.keys(req.body || {})) {
 
   if (key === "priceAmount") {
@@ -164,7 +163,6 @@ async function updateProduct(req, res) {
     product[key] = req.body[key];
   }
 }
-
     await product.save();
 
     return res.status(200).json({
@@ -193,7 +191,7 @@ async function deleteProduct(req, res) {
       });
     }
 
-    const product = await productModel.findById(id); // FIX
+    const product = await productModel.findById(id); 
 
     if (!product) {
       return res.status(404).json({
@@ -207,7 +205,7 @@ async function deleteProduct(req, res) {
       });
     }
 
-    await productModel.findByIdAndDelete(id); //  FIX
+    await productModel.findByIdAndDelete(id); 
 
     return res.status(200).json({
       message: "product deleted successfully"
@@ -219,7 +217,7 @@ async function deleteProduct(req, res) {
       error: error.message
     });
   }
-}
+}  
 
 
 async function getProductbyseller(req, res) {

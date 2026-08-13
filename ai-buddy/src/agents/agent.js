@@ -20,7 +20,6 @@ const graph = new StateGraph(MessagesAnnotation)
 
  .addNode("chat", async (state, config) => {
 
-    console.log("CHAT NODE STARTED");
 
     const response = await model.invoke(
         state.messages,
@@ -32,7 +31,6 @@ const graph = new StateGraph(MessagesAnnotation)
         }
     );
 
-    console.log("MODEL RESPONSE --->", response);
 
     state.messages.push(response);
 
@@ -40,9 +38,6 @@ const graph = new StateGraph(MessagesAnnotation)
 })
   .addNode("tools", async (state, config) => {
 
-    console.log("TOOLS NODE STARTED");
-
-    console.log("TOOLS CONFIG", JSON.stringify(config,null,2));
 
     const lastMessage =
       state.messages[state.messages.length - 1];
@@ -53,7 +48,6 @@ const graph = new StateGraph(MessagesAnnotation)
     const toolResults = await Promise.all(
       toolCalls.map(async (call) => {
 
-        console.log("Tool Calling:", call.name);
 
         const selectedTool =
           tools[call.name];
@@ -64,8 +58,6 @@ const graph = new StateGraph(MessagesAnnotation)
           );
         }
 
-        console.log("CONFIG --->", config);
-console.log("TOKEN --->", config?.metadata?.token);
 
         const result =
           await selectedTool.invoke({

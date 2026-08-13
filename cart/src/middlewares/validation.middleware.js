@@ -20,23 +20,26 @@ const validationaddItemTOCart = [
     .withMessage("Invalid productId format"),
 
   body("qty")
-    .isInt({ gt: 0 })
-    .withMessage("Quantity must be greater than 0"),
+  .isInt()
+  .withMessage("Quantity must be an integer"),
 
   validateResult,
 ];
 
 
+
 const validateUpdateCartItem = [
   param("productId")
-    .notEmpty().withMessage("productId is required")
-    .custom(value => mongoose.Types.ObjectId.isValid(value))
+    .notEmpty()
+    .withMessage("productId is required")
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
     .withMessage("Invalid productId format"),
 
   body("qty")
-    .notEmpty().withMessage("qty is required")
-    .isInt({ gt: 0 })
-    .withMessage("Quantity must be greater than 0"),
+  .notEmpty()
+  .withMessage("qty is required")
+  .isInt({ min: 1 })
+  .withMessage("Quantity must be a positive integer"),
 
   validateResult,
 ];

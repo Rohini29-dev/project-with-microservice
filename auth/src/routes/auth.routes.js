@@ -11,6 +11,14 @@ routes.post('/login',validateMiddlware.loginUserValidation,authController.loginU
 routes.get('/me',authMiddleware.authMiddleware,authController.getCurrentUser)
 routes.get('/logout',authController.logOutUser)
 
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false }),authController.googleAuthCallback);
+
+
 routes.get('/users/me/addresses',authMiddleware.authMiddleware,authController.getUserAddress)
 routes.post('/users/me/addresses',validateMiddlware.createAddressValidation,authMiddleware.authMiddleware,authController.addUserAddress)
 routes.delete('/users/me/addresses/:addressId',authMiddleware.authMiddleware,authController.deleteUserAddress)

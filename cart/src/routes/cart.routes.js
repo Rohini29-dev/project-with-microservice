@@ -11,4 +11,10 @@ routes.patch('/items/:productId',validationMiddlweare.validateUpdateCartItem,cre
 
 routes.get('/',createAuthMiddlewere(['user']),cartController.getCart)
 
-module.exports = routes
+routes.delete(
+  "/items/:productId",
+  createAuthMiddlewere(["user"]),
+  cartController.removeCartItem
+);
+
+module.exports = routes 

@@ -24,10 +24,10 @@ function createAuthMiddleware(role = ['user']) {
         });
       }
 
-      req.user = decoded; // ✅ semicolon
+      req.user = decoded; 
       next();
     } catch (error) {
-      console.log("AUTH ERROR 👉", error.message); // 👈 ADD THIS
+      console.log("AUTH ERROR ", error.message); 
       return res.status(500).json({
         message: "Internal error"
       });

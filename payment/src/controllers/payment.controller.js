@@ -26,7 +26,6 @@ const orderResponse = await axios.get('http://localhost:3003/api/orders/'+ order
     }
 })
 
-// console.log(  "orderResponse----->", orderResponse.data..order.price);
 
 const price = orderResponse.data.order.price
 
@@ -38,7 +37,6 @@ const price = orderResponse.data.order.price
     receipt: `receipt_${Date.now()}`
 });
 
-    // console.log("order------->",order);
     
 
     const payment = await paymentModel.create({
@@ -65,7 +63,13 @@ const price = orderResponse.data.order.price
 
 return res.status(201).json({
             message:'Payment initiated',
-            payment
+            payment,
+             razorpay: {
+        key: process.env.RAZORPAY_KEY_ID,
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency
+    }
 
 })
 
@@ -128,37 +132,39 @@ async function verifyPayment(req, res) {
         await payment.save();
 
 
-        // await publishToQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETE",
-        //     {
-        //         email:req.user.email,
-        //         orderId:payment.order,
-        //         paymentId:payment.paymentId,
-        //         amount:payment.price.amount/100,
-        //         currency:payment.price.currency,
-        //         fullName:req.user.fullName
-
-        //     }
-        // )
-
+        
 
         await Promise.all([
 
-            
-            publishToQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETE",
-                {
-                    email:req.user.email,
-                    orderId:payment.order,
-                    paymentId:payment.paymentId,
-                    amount:payment.price.amount/100,
-                    currency:payment.price.currency,
-                    fullName:req.user.fullName
-                    
-                }
-            ),
+  publishToQueue(
+    "PAYMENT_NOTIFICATION.PAYMENT_COMPLETE",
+    {
+      email: req.user.email,
+      orderId: payment.order,
+      paymentId: payment.paymentId,
+      amount: payment.price.amount / 100,
+      currency: payment.price.currency,
+      fullName: req.user.fullName,
+    }
+  ),
 
-                        publishToQueue('PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE', payment)
+  publishToQueue(
+    "PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE",
+    payment
+  ),
 
-        ])
+  publishToQueue(
+    "PAYMENT_ORDER.PAYMENT_COMPLETED",
+    {
+      orderId: payment.order,
+      paymentId: payment.paymentId,
+    }
+  )
+
+]);
+
+
+        
         return res.status(200).json({
             message: 'Payment verified successfully',
             payment

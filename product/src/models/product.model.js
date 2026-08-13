@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
     price:{
         amount:{
             type:Number,
-            require:true
+            required: true
         },
         currency:{
             type:String,

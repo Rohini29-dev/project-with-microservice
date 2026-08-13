@@ -7,8 +7,8 @@ async function uploadFile({fileName,folder= "/products" ,buffer}) {
     try {
         
         console.log("📤 Uploading to ImageKit...");
-        console.log("File:", fileName);
-        console.log("Size:", buffer.length);
+        // console.log("File:", fileName);
+        // console.log("Size:", buffer.length);
     const client = new ImageKit({
         privateKey: process.env['IMAGEKIT_PRIVATE_KEY'], 
     });
@@ -19,8 +19,7 @@ async function uploadFile({fileName,folder= "/products" ,buffer}) {
         folder
     });
     
-    console.log(response.url,);
-    console.log(response.name,);
+    
     return response 
     
 } catch (error) {

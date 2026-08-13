@@ -2,9 +2,15 @@ process.env.JWT_SECRET = "testsecret";
 const request = require("supertest");
 const app = require("../src/app");
 const jwt = require("jsonwebtoken");
-
+jest.mock("../src/borker/borker", () => ({
+  publishToQueue: jest.fn().mockResolvedValue(true),
+}));
 jest.mock("axios");
 jest.mock("../src/models/order.models");
+
+jest.mock("../src/borker/borker", () => ({
+  publishToQueue: jest.fn().mockResolvedValue(true),
+}));
 
 const axios = require("axios");
 const orderModel = require("../src/models/order.models");
@@ -43,11 +49,14 @@ describe("POST /api/orders", () => {
     return Promise.resolve({
       data: {
         data: {
-          id: "p1",
-          name: "Product 1",
-          instock: 10,
-          price: { amount: 100, currency: "INR" }
-        }
+  _id: "p1",
+  title: "Product 1",
+  stock: 10,
+  price: {
+    amount: 100,
+    currency: "INR"
+  }
+}
       }
     });
   }
@@ -60,18 +69,20 @@ describe("POST /api/orders", () => {
     const res = await request(app)
       .post("/api/orders")
       .set("Authorization", `Bearer ${token}`)
-      .send({
-        user: "user123",
-        items: [{ productId: "p1", quantity: 2 }],
-        price: { amount: 200 },
-        shippingAddress: {
-          street: "abc",
-          city: "ujjain",
-          state: "mp",
-          pincode: "456010",
-          country: "India"
-        }
-      });
+     .send({
+  user: "user123",
+  items: [{ productId: "p1", quantity: 2 }],
+  price: { amount: 200 },
+ shippingAddress: {
+  fullName: "Rohini Test",
+  phone: "9876543210",
+  street: "abc",
+  city: "ujjain",
+  state: "mp",
+  pincode: "456010",
+  country: "India"
+}
+});
 
     expect(res.statusCode).toBe(201);
   });

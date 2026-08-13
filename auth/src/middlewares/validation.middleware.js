@@ -55,7 +55,6 @@ const registerUserValidation = [
 
 
 const loginUserValidation = [
-  // Email OR Username validation
   body()
     .custom((value, { req }) => {
       if (!req.body.email && !req.body.username) {
@@ -64,13 +63,11 @@ const loginUserValidation = [
       return true;
     }),
 
-  // If email is provided → validate it
   body('email')
     .optional()
     .isEmail()
     .withMessage('Enter a valid email'),
 
-  // If username is provided → validate it
   body('username')
     .optional()
     .isLength({ min: 3 })
@@ -78,7 +75,6 @@ const loginUserValidation = [
     .matches(/^\S+$/)
     .withMessage('Username should not contain spaces'),
 
-  // Password validation
   body('password')
     .notEmpty()
     .withMessage('Password is required'),

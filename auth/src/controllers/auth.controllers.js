@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const userModel = require('../models/user.model')
 const bcrypt = require('bcryptjs')
 const redis = require('../db/redis')
-// const {publishToQueue} = require('../borker/borker')
+const {publishToQueue} = require('../borker/borker')
 
 
 async function registerUserController(req,res) {
@@ -29,19 +29,19 @@ const user = await userModel.create({
     role
 })
 
-// await Promise.all([
+await Promise.all([
 
-//   publishToQueue('AUTH_NOTIFICATION.USER_CREATED',{
-//     id:user.id,
-//     username:user.username,
-//     email:user.email,
-//     fullName:user.fullName
-//   }),
+  publishToQueue('AUTH_NOTIFICATION.USER_CREATED',{
+    id:user.id,
+    username:user.username,
+    email:user.email,
+    fullName:user.fullName
+  }),
 
-//   publishToQueue('AUTH_SELLER.USER_CREATED',user)
+  publishToQueue('AUTH_SELLER.USER_CREATED',user)
 
   
-// ])
+])
 
 
 
@@ -94,7 +94,6 @@ async function loginUserController(req, res) {
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -135,7 +134,7 @@ async function getCurrentUser(req, res) {
       user: req.user,
     });
   } catch (error) {
-    console.log("ME ERROR 👉", error); // 
+    console.log("ERROR ", error); 
     res.status(500).json({
       message: "internal server error",
     });
@@ -158,7 +157,7 @@ async function logOutUser(req,res) {
             message:"user logout sucessfully"
         })
     } catch (error) {
-     console.log("ME ERROR 👉", error);
+     console.log(" ERROR", error);
     res.status(500).json({
       message: "internal server error",
     });
@@ -187,7 +186,7 @@ async function logOutUser(req,res) {
 
 
     } catch (error) {
-      console.log("ME ERROR 👉", error); // 👈 ADD THIS
+      console.log("ERROR ", error); 
     res.status(500).json({
       message: "internal server error",
     });
@@ -222,7 +221,7 @@ async function logOutUser(req,res) {
     });
 
   } catch (error) {
-    console.log("ADD ADDRESS ERROR 👉", error);
+    console.log("ADD ADDRESS ERROR ", error);
     res.status(500).json({
       message: "internal server error",
     });
@@ -284,6 +283,74 @@ async function deleteUserAddress(req, res) {
 }
 
 
+export async function googleAuthCallback(req,res) {
+    const user = req.user
+// console.log(user);
+
+
+
+
+    const isUserAlreadyExist = await userModel.findOne({
+        $or:[
+            {email:user.emails[0].value},
+            {googleId:user.id}
+        ]
+    })
+
+
+    if(isUserAlreadyExist){
+        const token = jwt.sign({
+            id:isUserAlreadyExist.id,
+            email:isUserAlreadyExist.email,
+            fullName:isUserAlreadyExist.fullName
+        },_config.JWT_SECRET,{expiresIn:'2d'})
+ 
+        res.cookie('token',token)
+
+        if(user.role === 'artist'){
+            return res.redirect('http://localhost:5173/artist/dashboard')
+        }
+
+        if(isUserAlreadyExist === 'artist'){
+        return redirect('http://localhost:5173/artist/dashboard')
+    }
+
+    return res.redirect('http://localhost:5173')
+
+    }
+
+    const newUser = await userModel.create({
+        googleId:user.id,
+        email:user.emails[0].value,
+        fullName:{
+            firstName:user.name.givenName,
+            lastName:user.name.familyName
+        }
+    })
+
+    await publishToQueue('user_create',{
+        id:newUser.id,
+        email:newUser.email,
+        fullName:newUser.fullName,
+        role:newUser.role
+    })
+
+    const token = jwt.sign({
+        id:newUser.id,
+        role:newUser.role,
+        fullName:newUser.fullName
+    },_config.JWT_SECRET,{expiresIn:'2d'})
+
+    res.cookie('token',token)
+
+    res.redirect('http://localhost:5173')
+
+  
+
+    
+
+}
+
 
 module.exports = {
     registerUserController,
@@ -292,5 +359,6 @@ module.exports = {
     logOutUser,
     getUserAddress,
 addUserAddress,
-deleteUserAddress
+deleteUserAddress,
+googleAuthCallback
 }

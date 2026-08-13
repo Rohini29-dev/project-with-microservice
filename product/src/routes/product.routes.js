@@ -7,14 +7,22 @@ const routes = express.Router()
 
 const upload = multer({storage:multer.memoryStorage()})
 
-routes.post('/',createAuthMiddleware(['user','seller']),upload.array('images',5),productController.createProduct)
+
+
+routes.post('/',createAuthMiddleware(['admin','seller']),upload.array('images',5),productController.createProduct)
 
 routes.get('/',productController.getProduct)
 routes.get('/seller',createAuthMiddleware(['seller']),productController.getProductbyseller)
 
 routes.get('/:id',productController.getProductById)
 
-routes.patch("/:id",createAuthMiddleware(['seller']),productController.updateProduct)
+// routes.patch("/:id",createAuthMiddleware(['seller']),productController.updateProduct)
+routes.patch(
+    "/:id",
+    createAuthMiddleware(['seller']),
+    upload.array('images', 5),
+    productController.updateProduct
+)
 routes.delete('/:id',createAuthMiddleware(['seller']),productController.deleteProduct)
 
 

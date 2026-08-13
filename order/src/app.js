@@ -2,7 +2,6 @@ const express = require('express')
 const orderRoutes = require('../src/routes/order.routes')
 const cookieParser = require("cookie-parser");
 
-
 const app = express()
 
 

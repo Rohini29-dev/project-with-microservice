@@ -8,6 +8,10 @@ const request = require('supertest');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
+jest.mock("../src/borker/borker", () => ({
+    publishToQueue: jest.fn().mockResolvedValue(true)
+}));
+
 const { createAuthMiddleware } = require('../src/middlewares/auth.middleware');
 const { createProduct } = require('../src/controllers/product.controller');
 

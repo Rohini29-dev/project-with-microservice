@@ -4,7 +4,7 @@ const {sendEmail} = require('../email')
 
 module.exports = function () {
     subscribeToQueue("AUTH_NOTIFICATION.USER_CREATED",async (data)=>{
-    // console.log('Received data from queue:',data);
+    console.log('Received data from queue:',data);
 
   const emailHTMLTemplate = `
     

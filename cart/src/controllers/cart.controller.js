@@ -64,12 +64,21 @@ async function updateItemQuantity(req, res) {
 
     cart.items[existsItemIndex].quantity += qty;
 
-    await cart.save();
+if (cart.items[existsItemIndex].quantity <= 0) {
+  cart.items.splice(existsItemIndex, 1);
+}
 
-    return res.status(200).json({
-      message: 'Item update',
-      cart
-    });
+await cart.save();
+
+return res.status(200).json({
+  message: "Item update",
+  cart,
+  itemCounts: cart.items.length,
+  totalQuantity: cart.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  ),
+});
 
   } catch (error) {
     console.log('updating item error', error);
@@ -85,6 +94,8 @@ async function getCart(req, res) {
     const user = req.user;
 
     let cart = await cartModel.findOne({ user: user.id }); 
+
+    
 
     
 
@@ -107,10 +118,58 @@ async function getCart(req, res) {
   }
 }
 
+async function removeCartItem(req, res) {
+  try {
+    const { productId } = req.params;
+    const user = req.user;
 
+    const cart = await cartModel.findOne({
+      user: user.id,
+    });
+
+    if (!cart) {
+      return res.status(404).json({
+        message: "Cart not found",
+      });
+    }
+
+    const itemIndex = cart.items.findIndex(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({
+        message: "Cart item not found",
+      });
+    }
+
+    cart.items.splice(itemIndex, 1);
+
+    await cart.save();
+
+
+    return res.status(200).json({
+      message: "Item removed successfully",
+      cart,
+      itemCounts: cart.items.length,
+      totalQuantity: cart.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      ),
+    });
+  } catch (error) {
+    console.error("Remove Cart Item Error:", error);
+
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+}
 
 module.exports = {
     addItemToCarts,
     updateItemQuantity,
-    getCart
+    getCart,
+    removeCartItem
 }
+
