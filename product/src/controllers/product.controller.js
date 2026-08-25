@@ -3,64 +3,77 @@ const productModel = require("../models/product.model");
 const { uploadFile } = require("../services/imagekit.service");
 const {publishToQueue} = require('../borker/borker')
 
-async function createProduct(req,res) {
-    try {
-        const {title,description,priceAmount,priceCurrency='INR'} = req.body
+async function createProduct(req, res) {
+  try {
+    const {
+      title,
+      description,
+      priceAmount,
+      priceCurrency = "INR",
+      stock,
+    } = req.body;
 
-            if(!title || !priceAmount){
-
-
-                return res.status(400).json({
-                    message:'title priceAmount and seller is required'
-                })
-            }
-
-            const seller = req.user.id 
-
-            const price = {
-                priceAmount:Number(priceAmount),
-                priceCurrency:priceCurrency
-            }
-
-   const images = [];
-
-if (req.files && req.files.length) {
-  for (const file of req.files) {
-    const result = await uploadFile({
-      buffer: file.buffer,
-      fileName: file.originalname
-    });
-    images.push(result);
-  }
-}
-          const product = await productModel.create({
-  title,
-  description,
-  price: {
-    amount: Number(priceAmount),
-    currency: priceCurrency
-  },
-  seller,
-  images
-});
-
-  await publishToQueue('PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED',product)
-  await publishToQueue('PRODUCT_NOTIFICATION.PRODUCT_CREATED',{
-    email:req.user.email,
-    productId:product._id,
-    sellerId:seller
-  })
-
-            return res.status(201).json({
-                message :"product created",
-                product
-            })
-
-
-    } catch (error) {
-  return res.status(500).json({ message: "Internal error" });
-        
+    if (!title || !priceAmount || stock === undefined) {
+      return res.status(400).json({
+        message: "title, priceAmount and stock are required",
+      });
     }
+
+    const seller = req.user.id;
+
+    const images = [];
+
+    if (req.files && req.files.length) {
+      for (const file of req.files) {
+        const result = await uploadFile({
+          buffer: file.buffer,
+          fileName: file.originalname,
+        });
+
+        images.push(result);
+      }
+    }
+
+    const product = await productModel.create({
+      title,
+      description,
+
+      price: {
+        amount: Number(priceAmount),
+        currency: priceCurrency,
+      },
+
+      stock: Number(stock),
+
+      seller,
+      images,
+    });
+
+    await publishToQueue(
+      "PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED",
+      product
+    );
+
+    await publishToQueue(
+      "PRODUCT_NOTIFICATION.PRODUCT_CREATED",
+      {
+        email: req.user.email,
+        productId: product._id,
+        sellerId: seller,
+      }
+    );
+
+    return res.status(201).json({
+      message: "product created",
+      product,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Internal error",
+    });
+  }
 }
 
 async function getProduct(req, res) {

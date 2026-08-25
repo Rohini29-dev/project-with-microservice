@@ -80,8 +80,8 @@ const {publishToQueue} = require('../borker/borker')
 
 async function createOrder(req, res) {
 
-
   const user = req.user;
+
   const token =
     req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
@@ -272,6 +272,8 @@ if(order.status !== 'PENDING'){
 
 await order.save()
 
+
+
 res.status(200).json({order})
 
   } catch (error) {
@@ -287,6 +289,12 @@ async function getByOrderId(req, res) {
 
   try {
     const order = await orderModel.findById(orderId);
+    console.log("Before Response");
+console.log(order.shippingAddress);
+
+
+
+
 
     if (!order) {
       return res.status(404).json({
@@ -306,10 +314,12 @@ async function getByOrderId(req, res) {
     });
 
   } catch (error) {
-    return res.status(500).json({
-      message: "internal server error"
-    });
-  }
+  console.log(error);
+
+  return res.status(500).json({
+    message: error.message
+  });
+}
 }
 
 module.exports = {

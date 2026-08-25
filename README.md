@@ -1,392 +1,610 @@
 # 🛒 E-Commerce Microservices Platform
 
-![Node.js](https://img.shields.io/badge/Node.js-18+-green)
-![Express.js](https://img.shields.io/badge/Express.js-Backend-black)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-green)
-![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message%20Broker-orange)
-![Redis](https://img.shields.io/badge/Redis-Cache-red)
-![JWT](https://img.shields.io/badge/JWT-Authentication-blue)
-![Razorpay](https://img.shields.io/badge/Razorpay-Payment-purple)
-![Microservices](https://img.shields.io/badge/Architecture-Microservices-success)
+A full-stack **E-Commerce application built using a Microservices Architecture** with Node.js, Express.js, MongoDB, Redis, RabbitMQ and React.js.
 
-A production-oriented E-Commerce backend built using **Microservices Architecture**. The system consists of independent services communicating asynchronously through **RabbitMQ**, enabling scalability, maintainability, and fault isolation.
+The platform provides separate services for authentication, products, cart, orders, payments, notifications and seller management.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Features
 
-### Authentication Service
+### 👤 Authentication & Authorization
 
-* User Registration
-* User Login
-* JWT Authentication
-* Address Management
-* Role-Based Authorization
+* User registration and login
+* JWT-based authentication
+* Password hashing using bcrypt
+* Protected routes
+* Role-based authorization
+* User profile management
+* Address management
+* Seller authorization
 
-### Product Service
+### 🛍️ Product Management
 
-* Create Product
-* Update Product
-* Delete Product
-* Product Listing
-* Seller Product Management
+* Create products
+* Update products
+* Delete products
+* Get all products
+* Get product details
+* Product image upload
+* Seller-specific product management
 
-### Cart Service
+### 🛒 Cart
 
-* Add Items to Cart
-* Update Quantity
-* Remove Items
-* View Cart
+* Add products to cart
+* Update product quantity
+* Remove products from cart
+* Get current user's cart
 
-### Order Service
+### 📦 Orders
 
-* Create Orders
-* Update Delivery Address
-* Cancel Orders
-* Order Tracking
+* Create orders
+* Get user's orders
+* Get order details
+* Cancel orders
+* Update shipping address
+* Seller order management
 
-### Payment Service
+### 💳 Payments
 
-* Razorpay Integration
-* Payment Verification
-* Payment Status Updates
+* Razorpay payment integration
+* Create payment orders
+* Verify Razorpay payments
+* Payment status handling
 
-### Notification Service
+### 📧 Notifications
 
-* Payment Success Emails
-* Order Notifications
-* Event-Based Messaging
+* Email notifications
+* RabbitMQ-based asynchronous communication
+* Payment notification events
+* Product-related notifications
 
-### Seller Dashboard Service
+### ⚡ Performance & Communication
 
-* Revenue Analytics
-* Product Metrics
-* Order Insights
-* Seller Statistics
-
-### AI Buddy Service
-
-* AI-powered Assistant
-* Real-Time User Interaction
-* Intelligent Query Handling
+* Redis integration
+* RabbitMQ message broker
+* Independent microservices
+* REST API communication between services
 
 ---
 
-# 🏗️ Architecture
+# 🏗️ Microservices Architecture
+
+The backend is divided into multiple independent services.
 
 ```text
-                        ┌─────────────┐
-                        │    Client   │
-                        └──────┬──────┘
-                               │
-                               ▼
+                         ┌──────────────────┐
+                         │   React Frontend │
+                         └────────┬─────────┘
+                                  │
+                                  ▼
+                         ┌──────────────────┐
+                         │   API Gateway    │
+                         │      :3000       │
+                         └────────┬─────────┘
+                                  │
+             ┌────────────────────┼────────────────────┐
+             │                    │                    │
+             ▼                    ▼                    ▼
+      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+      │ Auth Service│      │   Product   │      │ Cart Service│
+      │    :3000    │      │   Service   │      │    :3002    │
+      └─────────────┘      │    :3001    │      └─────────────┘
+                           └─────────────┘
+                                  │
+             ┌────────────────────┼────────────────────┐
+             │                    │                    │
+             ▼                    ▼                    ▼
+      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+      │Order Service│      │   Payment   │      │ Notification│
+      │    :3003    │      │   Service   │      │   Service   │
+      └─────────────┘      │    :3004    │      └─────────────┘
+                           └──────┬──────┘
+                                  │
+                                  ▼
+                            ┌───────────┐
+                            │ Razorpay  │
+                            └───────────┘
 
- ┌─────────────────────────────────────────────────┐
- │                 API Services                    │
- └─────────────────────────────────────────────────┘
+                  ┌──────────────────────┐
+                  │      RabbitMQ        │
+                  │ Message Broker       │
+                  └──────────────────────┘
 
-     │           │          │          │
-     ▼           ▼          ▼          ▼
+                  ┌──────────────────────┐
+                  │        Redis         │
+                  │      Caching         │
+                  └──────────────────────┘
 
- ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
- │ Auth   │ │Product │ │ Cart   │ │ Order  │
- └────┬───┘ └────┬───┘ └────┬───┘ └────┬───┘
-      │          │          │          │
-      └──────────┴──────────┴──────────┘
-                       │
-                       ▼
-
-               ┌─────────────┐
-               │ RabbitMQ    │
-               └──────┬──────┘
-                      │
-      ┌───────────────┼────────────────┐
-      ▼               ▼                ▼
-
- ┌────────┐    ┌──────────────┐   ┌───────────┐
- │Payment │    │Notification  │   │ Seller DB │
- └────────┘    └──────────────┘   └───────────┘
-
-                      │
-                      ▼
-
-                ┌─────────┐
-                │ AI Buddy│
-                └─────────┘
+                  ┌──────────────────────┐
+                  │      MongoDB         │
+                  │       Atlas          │
+                  └──────────────────────┘
 ```
+
+---
+
+# 📦 Services
+
+| Service              | Responsibility                                 |
+| -------------------- | ---------------------------------------------- |
+| Auth Service         | Registration, login, JWT authentication, users |
+| Product Service      | Product CRUD and product images                |
+| Cart Service         | Shopping cart management                       |
+| Order Service        | Order creation and order management            |
+| Payment Service      | Razorpay payment processing                    |
+| Notification Service | Email notifications                            |
+| Seller Service       | Seller-specific operations                     |
+| API Gateway          | Routes requests to appropriate services        |
 
 ---
 
 # 🛠️ Tech Stack
 
-| Category       | Technologies        |
-| -------------- | ------------------- |
-| Backend        | Node.js, Express.js |
-| Database       | MongoDB             |
-| Messaging      | RabbitMQ            |
-| Cache          | Redis               |
-| Authentication | JWT                 |
-| Payments       | Razorpay            |
-| Email          | Nodemailer          |
-| Testing        | Jest                |
-| Architecture   | Microservices       |
+## Frontend
+
+* React.js
+* React Router DOM
+* Axios
+* React Hook Form
+* CSS
+* Vite
+
+## Backend
+
+* Node.js
+* Express.js
+* MongoDB
+* Mongoose
+* JWT
+* bcrypt
+* Cookie Parser
+
+## Microservices & Infrastructure
+
+* Redis
+* RabbitMQ
+* Nodemailer
+* Razorpay
+* ImageKit
+* Docker *(planned/development environment)*
+
+## Development Tools
+
+* Git
+* GitHub
+* Postman
+* VS Code
 
 ---
 
-# 📂 Project Structure
+# 📁 Project Structure
 
 ```text
 project-with-microservice/
-
-├── auth/
-├── product/
-├── cart/
-├── order/
-├── payment/
-├── notification/
-├── seller-dashboard/
-├── ai-buddy/
+│
+├── auth-service/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middlewares/
+│   ├── services/
+│   └── server.js
+│
+├── product-service/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middlewares/
+│   └── server.js
+│
+├── cart-service/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+│
+├── order-service/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+│
+├── payment-service/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+│
+├── notification-service/
+│   ├── consumers/
+│   ├── services/
+│   ├── templates/
+│   └── server.js
+│
+├── seller-service/
+│   ├── controllers/
+│   ├── routes/
+│   └── server.js
 │
 └── README.md
 ```
 
+> Folder names can be adjusted according to the final structure of the repository.
+
 ---
 
-# ⚙️ Installation
+# 🔐 Authentication Flow
 
-## Clone Repository
+The application uses **JWT authentication**.
 
-```bash
-git clone https://github.com/Rohini29-dev/project-with-microservice.git
+```text
+User
+ │
+ │ Register / Login
+ ▼
+Auth Service
+ │
+ │ Validate credentials
+ ▼
+JWT Token
+ │
+ ▼
+Client
+ │
+ │ Authenticated Request
+ ▼
+Protected Service
+ │
+ ▼
+JWT Verification
+ │
+ ▼
+Authorized Request
+```
 
-cd project-with-microservice
+Passwords are securely hashed using **bcrypt** before being stored in the database.
+
+---
+
+# 💳 Payment Flow
+
+The application uses **Razorpay** for online payments.
+
+```text
+User
+ │
+ ▼
+Checkout
+ │
+ ▼
+Order Service
+ │
+ ▼
+Payment Service
+ │
+ ▼
+Create Razorpay Order
+ │
+ ▼
+Razorpay Checkout
+ │
+ ▼
+Payment
+ │
+ ▼
+Payment Verification
+ │
+ ▼
+Order Updated
+ │
+ ▼
+RabbitMQ Event
+ │
+ ▼
+Notification Service
+ │
+ ▼
+Email Notification
 ```
 
 ---
 
-## Install Dependencies
+# 📨 RabbitMQ Communication
 
-Install dependencies inside each service:
+RabbitMQ is used for **asynchronous communication between services**.
 
-```bash
-cd auth
-npm install
+For example:
 
-cd ../product
-npm install
+```text
+Payment Service
+      │
+      │ PAYMENT_COMPLETE
+      ▼
+   RabbitMQ
+      │
+      ▼
+Notification Service
+      │
+      ▼
+ Send Email
+```
 
-cd ../cart
-npm install
+This keeps notification processing separate from the main payment request.
 
-cd ../order
-npm install
+---
 
-cd ../payment
-npm install
+# ⚡ Redis
 
-cd ../notification
-npm install
+Redis is used as an in-memory data store and can be used for:
 
-cd ../seller-dashboard
-npm install
+* Caching
+* Faster data access
+* Reducing repeated database queries
+* Temporary data storage
 
-cd ../ai-buddy
-npm install
+---
+
+# 🖼️ Image Upload
+
+Product images are uploaded using **Multer** and stored using an external image storage service.
+
+The product service handles:
+
+```text
+Client
+  │
+  ▼
+Multer
+  │
+  ▼
+Image Processing
+  │
+  ▼
+Image Storage
+  │
+  ▼
+Product Database
 ```
 
 ---
 
-## Environment Variables
+# 🔌 API Overview
 
-Create `.env` file inside each service.
+## Authentication
+
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
+POST /api/auth/logout
+```
+
+## Products
+
+```http
+GET    /api/products
+GET    /api/products/:id
+POST   /api/products
+PUT    /api/products/:id
+DELETE /api/products/:id
+```
+
+## Cart
+
+```http
+GET    /api/carts
+POST   /api/carts
+PUT    /api/carts/:id
+DELETE /api/carts/:id
+```
+
+## Orders
+
+```http
+POST /api/orders
+GET  /api/orders/me
+GET  /api/orders/:id
+PUT  /api/orders/:id
+```
+
+## Payments
+
+```http
+POST /api/payments/create/:orderId
+POST /api/payments/verify
+```
+
+> Exact endpoints may vary depending on the final route configuration in each service.
+
+---
+
+# ⚙️ Environment Variables
+
+Each service should have its own `.env` file.
 
 Example:
 
 ```env
 PORT=3000
 
-MONGO_URI=your_mongodb_uri
+MONGO_URI=your_mongodb_connection_string
 
 JWT_SECRET=your_jwt_secret
 
-RABBITMQ_URL=your_rabbitmq_url
+REDIS_URL=your_redis_connection_string
+
+RABBITMQ_URL=your_rabbitmq_connection_string
+
+RAZORPAY_KEY_ID=your_razorpay_key_id
+
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+
+IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
 ```
+
+For the notification service:
+
+```env
+EMAIL_USER=your_email
+EMAIL_CLIENT_ID=your_client_id
+EMAIL_CLIENT_SECRET=your_client_secret
+EMAIL_REFRESH_TOKEN=your_refresh_token
+```
+
+**Never commit `.env` files or API secrets to GitHub.**
 
 ---
 
-# ▶️ Running Services
+# 🏃‍♀️ Running the Project Locally
 
-Start each service individually:
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/Rohini29-dev/project-with-microservice.git
+```
+
+## 2. Move into the project
+
+```bash
+cd project-with-microservice
+```
+
+## 3. Install dependencies
+
+Install dependencies separately for each service:
+
+```bash
+npm install
+```
+
+If every service has its own `package.json`, run:
+
+```bash
+cd auth-service
+npm install
+```
+
+and repeat for the other services.
+
+## 4. Configure environment variables
+
+Create `.env` files for the required services and add your:
+
+* MongoDB URI
+* JWT secret
+* Redis configuration
+* RabbitMQ configuration
+* Razorpay credentials
+* ImageKit credentials
+* Email credentials
+
+## 5. Start the services
+
+Start each service according to its configured script.
+
+Example:
 
 ```bash
 npm run dev
 ```
 
-or
-
-```bash
-npm start
-```
-
 ---
 
-# 📡 Event Flow
+# 🧪 API Testing
 
-### Order Created
+The APIs can be tested using **Postman**.
+
+Recommended testing flow:
 
 ```text
-User
- ↓
-Order Service
- ↓
-RabbitMQ
- ↓
-Payment Service
- ↓
-Notification Service
- ↓
-Seller Dashboard Service
+Register
+   ↓
+Login
+   ↓
+Get Current User
+   ↓
+Create Product
+   ↓
+Get Products
+   ↓
+Add Product to Cart
+   ↓
+Checkout
+   ↓
+Create Order
+   ↓
+Create Payment
+   ↓
+Verify Payment
+   ↓
+Receive Notification
 ```
 
-### Payment Completed
+---
+
+# 🔒 Security
+
+The project implements several security practices:
+
+* JWT authentication
+* Password hashing with bcrypt
+* Protected API routes
+* Role-based authorization
+* Environment variables for secrets
+* Input validation
+* Authentication middleware
+* Secure payment verification
+
+---
+
+# 🎯 Why Microservices?
+
+This project uses a microservices architecture to separate business responsibilities.
+
+Instead of maintaining one large backend application:
 
 ```text
-Payment Success
- ↓
-RabbitMQ Event
- ↓
-Notification Service
- ↓
-Send Email
+                 Monolithic
+                     │
+       ┌─────────────┴─────────────┐
+       │ Auth Product Cart Order   │
+       │ Payment Notification      │
+       └───────────────────────────┘
 ```
+
+The application separates these responsibilities:
+
+```text
+Auth ──────────────── Service
+Products ──────────── Service
+Cart ───────────────── Service
+Orders ─────────────── Service
+Payments ───────────── Service
+Notifications ─────── Service
+Seller ─────────────── Service
+```
+
+This makes individual services easier to maintain, scale and develop independently.
 
 ---
 
-# 🔗 Sample API Endpoints
+# 📈 Future Improvements
 
-## Authentication
-
-### Register User
-
-```http
-POST /api/auth/register
-```
-
-Request:
-
-```json
-{
-  "fullName": "Rohini",
-  "email": "rohini@gmail.com",
-  "password": "123456"
-}
-```
-
-Response:
-
-```json
-{
-  "success": true,
-  "message": "User Registered"
-}
-```
-
----
-
-### Login
-
-```http
-POST /api/auth/login
-```
-
----
-
-## Product
-
-### Create Product
-
-```http
-POST /api/products
-```
-
----
-
-### Get Products
-
-```http
-GET /api/products
-```
-
----
-
-## Cart
-
-### Add To Cart
-
-```http
-POST /api/cart/add
-```
-
----
-
-## Order
-
-### Create Order
-
-```http
-POST /api/orders
-```
-
----
-
-## Payment
-
-### Create Payment
-
-```http
-POST /api/payment/create
-```
-
----
-
-# 🧪 Testing
-
-Run tests inside any service:
-
-```bash
-npm test
-```
-
-Example:
-
-```bash
-cd auth
-npm test
-```
-
----
-
-# 📈 Project Highlights
-
-* Built 8 independent microservices.
-* Implemented event-driven communication using RabbitMQ.
-* Integrated Razorpay payment gateway.
-* Added Redis caching support.
-* Designed scalable service-oriented architecture.
-* Created AI-powered assistant service.
-* Implemented seller analytics dashboard.
-* Wrote automated tests using Jest.
-
----
-
-# 🔮 Future Enhancements
-
-* Docker Containerization
-* AWS Deployment
-* CI/CD Pipeline
-* Monitoring & Logging
-* Frontend Dashboard
-* Kubernetes Orchestration
+* Dockerize all microservices
+* Add Kubernetes deployment
+* Implement centralized API Gateway
+* Improve Redis caching strategy
+* Add service health monitoring
+* Add automated CI/CD pipeline
+* Add comprehensive unit and integration tests
+* Deploy services to AWS
+* Add logging and monitoring
+* Improve fault tolerance and retry mechanisms
 
 ---
 
@@ -394,9 +612,33 @@ npm test
 
 **Rohini Bharsakle**
 
+Backend Developer | Node.js | Express.js | MongoDB | Microservices
+
 GitHub:
 https://github.com/Rohini29-dev
 
 ---
 
-⭐ If you found this project useful, consider giving it a star.
+# ⭐ Project Highlights
+
+This project demonstrates practical experience with:
+
+* Microservices Architecture
+* REST APIs
+* Node.js & Express.js
+* MongoDB & Mongoose
+* JWT Authentication
+* Redis
+* RabbitMQ
+* Razorpay Payment Gateway
+* Email Notifications
+* Image Upload
+* Role-Based Authorization
+* React.js Frontend
+* Git & GitHub
+
+---
+
+## 📌 License
+
+This project is created for learning, development and portfolio purposes.

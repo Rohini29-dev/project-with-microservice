@@ -1,5 +1,8 @@
 const amqplib  = require('amqplib')
 
+
+
+
 let channel , connection;
 
 async function connect() {

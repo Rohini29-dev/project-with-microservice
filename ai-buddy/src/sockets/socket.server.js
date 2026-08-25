@@ -169,10 +169,18 @@ async function initSocketServer(httpServer) {
 
             
 
-          socket.emit(
-            "message",
-            lastMessage.content
-          );
+          // socket.emit(
+          //   "message",
+          //   lastMessage.content
+          // );
+
+            socket.emit(
+  "message",
+  {
+    type: "text",
+    content: lastMessage.content
+  }
+);
 
         } catch (error) {
 
@@ -181,10 +189,10 @@ async function initSocketServer(httpServer) {
             error
           );
 
-          socket.emit(
-            "message",
-            error.message
-          );
+         socket.emit("message", {
+  type: "text",
+  content: error.message,
+});
         }
       }
     );

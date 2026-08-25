@@ -1,96 +1,98 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult } = require("express-validator");
 
-const respondwithValidationError  = (req,res,next)=>{
-    const error = validationResult(req)
+const respondwithValidationError = (req, res, next) => {
+  const errors = validationResult(req);
 
-    if(!error.isEmpty()){
-        return res.status(400).json({
-            error:error.array()
-        })
-    }
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array(),
+    });
+  }
 
-    next()
-} 
-
-
+  next();
+};
 
 const createAddressValidation = [
+  body("shippingAddress.fullName")
+    .trim()
+    .notEmpty()
+    .withMessage("Full Name is required"),
+
+  body("shippingAddress.phone")
+    .trim()
+    .matches(/^[0-9]{10}$/)
+    .withMessage("Phone number must be 10 digits"),
+
   body("shippingAddress.street")
+    .trim()
     .notEmpty()
     .withMessage("Street is required")
     .isLength({ min: 3 })
     .withMessage("Street must be at least 3 characters"),
 
   body("shippingAddress.city")
+    .trim()
     .notEmpty()
-    .withMessage("City is required")
-    .isLength({ min: 2 })
-    .withMessage("City must be at least 2 characters"),
+    .withMessage("City is required"),
 
   body("shippingAddress.state")
+    .trim()
     .notEmpty()
-    .withMessage("State is required")
-    .isLength({ min: 2 })
-    .withMessage("State must be at least 2 characters"),
+    .withMessage("State is required"),
 
   body("shippingAddress.pincode")
-    .notEmpty()
-    .withMessage("pincode is required")
-    .isPostalCode("IN") // 🇮🇳 India zip validation
-    .withMessage("Invalid zip code"),
+    .trim()
+    .matches(/^[0-9]{6}$/)
+    .withMessage("Pincode must be 6 digits"),
 
   body("shippingAddress.country")
+    .trim()
     .notEmpty()
     .withMessage("Country is required"),
-
- 
 
   respondwithValidationError,
 ];
 
 const updateAddressValidation = [
-body('shippingAddress.street')
-.isString()
-.withMessage('street must be a string')
-.notEmpty()
-.withMessage('street cannot to empty'),
+  body("shippingAddress.fullName")
+    .optional()
+    .trim()
+    .notEmpty(),
 
-body('shippingAddress.city')
-.isString()
-.withMessage('city must be a string')
-.notEmpty()
-.withMessage('city cannot to empty'),
+  body("shippingAddress.phone")
+    .optional()
+    .trim()
+    .matches(/^[0-9]{10}$/),
 
+  body("shippingAddress.street")
+    .optional()
+    .trim()
+    .notEmpty(),
 
-body('shippingAddress.state')
-.isString()
-.withMessage('state must be a string')
-.notEmpty()
-.withMessage('state cannot to empty'),
+  body("shippingAddress.city")
+    .optional()
+    .trim()
+    .notEmpty(),
 
-body('shippingAddress.pincode')
-.isString()
-.withMessage('pincode must be a string')
-.notEmpty()
-.withMessage('pincode cannot to empty')
-.bail()
-.matches(/^\d{4,}$/)
-.withMessage('pincode must be at least 4 digits'),
+  body("shippingAddress.state")
+    .optional()
+    .trim()
+    .notEmpty(),
 
-body('shippingAddress.country')
-.isString()
-.withMessage('country must be a string')
-.notEmpty()
-.withMessage('country cannot to empty'),
+  body("shippingAddress.pincode")
+    .optional()
+    .trim()
+    .matches(/^[0-9]{6}$/),
 
+  body("shippingAddress.country")
+    .optional()
+    .trim()
+    .notEmpty(),
 
-respondwithValidationError
-
-
-]
-
+  respondwithValidationError,
+];
 
 module.exports = {
-    createAddressValidation,
-    updateAddressValidation
-}
+  createAddressValidation,
+  updateAddressValidation,
+};
