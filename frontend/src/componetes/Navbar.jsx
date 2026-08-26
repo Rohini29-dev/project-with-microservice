@@ -11,6 +11,10 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  // ================= CART COUNT =================
+
+  const [cartCount, setCartCount] = useState(0);
+
   // ================= FETCH CURRENT USER =================
 
   useEffect(() => {
@@ -34,6 +38,41 @@ const Navbar = () => {
     fetchCurrentUser();
   }, []);
 
+  // ================= FETCH CART COUNT =================
+
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      // Cart sirf normal user ke liye hai
+      if (!user || user.role !== "user") {
+        setCartCount(0);
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          "http://localhost:3002/api/carts",
+          {
+            withCredentials: true,
+          }
+        );
+
+        console.log("Cart response:", response.data);
+
+        const cart = response.data.cart;
+
+        // Number of products in cart
+        const count = cart?.items?.length || 0;
+
+        setCartCount(count);
+      } catch (error) {
+        console.log("Cart count error:", error);
+        setCartCount(0);
+      }
+    };
+
+    fetchCartCount();
+  }, [user]);
+
   // ================= LOGOUT =================
 
   const handleLogout = async () => {
@@ -46,6 +85,7 @@ const Navbar = () => {
       );
 
       setUser(null);
+      setCartCount(0);
       setProfileOpen(false);
       setMenuOpen(false);
 
@@ -179,6 +219,7 @@ const Navbar = () => {
                 stroke="currentColor"
                 strokeWidth="2"
               >
+
                 <path d="M3 3h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6" />
 
                 <circle
@@ -192,10 +233,13 @@ const Navbar = () => {
                   cy="20"
                   r="1"
                 />
+
               </svg>
 
+              {/* CART COUNT */}
+
               <span className="cart-count">
-                0
+                {cartCount}
               </span>
 
             </Link>
@@ -282,6 +326,7 @@ const Navbar = () => {
                     </span>
 
                     <span>
+
                       <strong>
                         Profile
                       </strong>
@@ -289,6 +334,7 @@ const Navbar = () => {
                       <small>
                         View your profile
                       </small>
+
                     </span>
 
                   </Link>
@@ -308,6 +354,7 @@ const Navbar = () => {
                       </span>
 
                       <span>
+
                         <strong>
                           My Orders
                         </strong>
@@ -315,6 +362,7 @@ const Navbar = () => {
                         <small>
                           View your orders
                         </small>
+
                       </span>
 
                     </Link>
@@ -335,6 +383,7 @@ const Navbar = () => {
                       </span>
 
                       <span>
+
                         <strong>
                           My Products
                         </strong>
@@ -342,6 +391,7 @@ const Navbar = () => {
                         <small>
                           Manage your products
                         </small>
+
                       </span>
 
                     </Link>
@@ -362,6 +412,7 @@ const Navbar = () => {
                       </span>
 
                       <span>
+
                         <strong>
                           Dashboard
                         </strong>
@@ -369,6 +420,7 @@ const Navbar = () => {
                         <small>
                           Manage your store
                         </small>
+
                       </span>
 
                     </Link>
