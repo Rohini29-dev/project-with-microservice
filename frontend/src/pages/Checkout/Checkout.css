@@ -1,0 +1,456 @@
+.checkout-page {
+  min-height: calc(100vh - 70px);
+  background: #f7f8fc;
+  padding: 40px 20px 60px;
+}
+
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+
+  gap: 30px;
+  align-items: start;
+}
+
+/* =========================
+   LEFT SECTION
+========================= */
+
+.checkout-left {
+  background: #ffffff;
+  padding: 32px;
+  border-radius: 14px;
+
+  border: 1px solid #eef0f4;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+.checkout-heading {
+  margin-bottom: 28px;
+}
+
+.checkout-heading h1 {
+  margin: 0 0 8px;
+
+  font-size: 32px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.checkout-heading p {
+  margin: 0;
+
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.checkout-left form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section h2 {
+  margin: 0 0 20px;
+
+  font-size: 19px;
+  font-weight: 600;
+
+  color: #111827;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 13px 14px;
+
+  border: 1px solid #d9dde5;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #111827;
+  font-size: 14px;
+
+  outline: none;
+
+  transition: border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group input {
+  height: 48px;
+}
+
+.form-group textarea {
+  min-height: 110px;
+
+  resize: vertical;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #9ca3af;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* =========================
+   ERROR
+========================= */
+
+.error {
+  margin: 6px 0 0;
+
+  color: #dc2626;
+
+  font-size: 13px;
+}
+
+/* =========================
+   PLACE ORDER BUTTON
+========================= */
+
+.place-order-btn {
+  width: 100%;
+
+  padding: 14px 20px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.place-order-btn:hover {
+  background: #1d4ed8;
+}
+
+.place-order-btn:active {
+  transform: scale(0.99);
+}
+
+.place-order-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   RIGHT SECTION
+========================= */
+
+.checkout-right {
+  position: sticky;
+  top: 90px;
+}
+
+.summary-card {
+  background: #ffffff;
+
+  padding: 26px;
+
+  border-radius: 14px;
+
+  border: 1px solid #eef0f4;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   SUMMARY HEADING
+========================= */
+
+.summary-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 22px;
+}
+
+.summary-heading h2 {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 650;
+
+  color: #111827;
+}
+
+.summary-heading span {
+  padding: 5px 9px;
+
+  border-radius: 6px;
+
+  background: #f3f4f6;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+/* =========================
+   PRODUCTS
+========================= */
+
+.summary-products {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+.summary-product {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+}
+
+.product-info {
+  min-width: 0;
+}
+
+.product-title {
+  margin: 0 0 5px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #1f2937;
+
+  line-height: 1.4;
+}
+
+.product-info span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.summary-product strong {
+  white-space: nowrap;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #111827;
+}
+
+/* =========================
+   DIVIDER
+========================= */
+
+.summary-divider {
+  height: 1px;
+
+  background: #eceff3;
+
+  margin: 20px 0;
+}
+
+/* =========================
+   SUMMARY ROW
+========================= */
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin: 14px 0;
+
+  font-size: 14px;
+
+  color: #4b5563;
+}
+
+.summary-row > span:last-child {
+  color: #111827;
+  font-weight: 500;
+}
+
+.free {
+  color: #16a34a !important;
+  font-weight: 600 !important;
+}
+
+/* =========================
+   TOTAL
+========================= */
+
+.summary-row.total {
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.summary-row.total span:last-child {
+  font-size: 21px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+/* =========================
+   SECURE PAYMENT
+========================= */
+
+.secure-payment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px solid #eceff3;
+}
+
+.secure-payment span {
+  font-size: 14px;
+}
+
+.secure-payment p {
+  margin: 0;
+
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 992px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-right {
+    position: static;
+  }
+
+  .summary-card {
+    max-width: none;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .checkout-page {
+    padding: 25px 12px 40px;
+  }
+
+  .checkout-left {
+    padding: 22px 18px;
+  }
+
+  .checkout-heading h1 {
+    font-size: 28px;
+  }
+
+  .checkout-heading p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .form-group input {
+    height: 46px;
+  }
+
+  .summary-card {
+    padding: 22px 18px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 400px) {
+  .checkout-page {
+    padding: 20px 10px 35px;
+  }
+
+  .checkout-left {
+    padding: 18px 15px;
+  }
+
+  .checkout-heading h1 {
+    font-size: 26px;
+  }
+
+  .summary-heading h2 {
+    font-size: 18px;
+  }
+
+  .summary-row.total {
+    font-size: 18px;
+  }
+
+  .summary-row.total span:last-child {
+    font-size: 19px;
+  }
+}
