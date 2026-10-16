@@ -3,14 +3,12 @@ import axios from "axios";
 import "./Cart.css";
 import { useNavigate } from "react-router-dom";
 
-import {
-  getCart,
-  updateCartItem,
-  removeCartItem,
-} from "../../services/cart.service";
+import { asyncdremoveCart, asyncloadCart, asyncupdateCart, } from "../../store/actions/cartAction";
+import { useDispatch } from "react-redux";
 
 function Cart() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,40 +22,42 @@ function Cart() {
   }, []);
 
   async function fetchCart() {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const cartResponse = await getCart();
+    const cartResponse = await dispatch(asyncloadCart());
 
-      const items = cartResponse.data.cart.items;
+    console.log("cartresponse =====>", cartResponse);
 
-      const finalItems = [];
+    const items = cartResponse.cart.items;
 
-      for (const item of items) {
-        try {
-          const productResponse = await axios.get(
-            `http://localhost:3001/api/products/${item.productId}`,
-            {
-              withCredentials: true,
-            }
-          );
+    const finalItems = [];
 
-          finalItems.push({
-            quantity: item.quantity,
-            product: productResponse.data.data,
-          });
-        } catch (err) {
-          console.log("Product not found", err);
-        }
+    for (const item of items) {
+      try {
+        const productResponse = await axios.get(
+          `http://localhost:3001/api/products/${item.productId}`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        finalItems.push({
+          quantity: item.quantity,
+          product: productResponse.data.data,
+        });
+      } catch (err) {
+        console.log("Product not found", err);
       }
-
-      setCartItems(finalItems);
-    } catch (err) {
-      console.log("Cart error:", err);
-    } finally {
-      setLoading(false);
     }
+
+    setCartItems(finalItems);
+  } catch (err) {
+    console.log("Cart error:", err);
+  } finally {
+    setLoading(false);
   }
+}
 
   // =========================================
   // CHANGE QUANTITY
@@ -65,7 +65,7 @@ function Cart() {
 
   async function changeQty(productId, qty) {
     try {
-      await updateCartItem(productId, qty);
+      await dispatch(asyncupdateCart(productId, qty));
 
       setCartItems((prev) =>
         prev
@@ -92,7 +92,7 @@ function Cart() {
 
   async function handleRemove(productId) {
     try {
-      await removeCartItem(productId);
+      await dispatch(asyncdremoveCart(productId));
 
       setCartItems((prev) =>
         prev.filter(

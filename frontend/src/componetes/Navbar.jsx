@@ -1,93 +1,67 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import "./Navbar.css";
+
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  asyncauthLogout,
+  asyncCurrentUser,
+} from "../store/actions/authActions";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [user, setUser] = useState(null);
+  // ================= USER FROM REDUX =================
+
+  const user = useSelector(
+    (state) => state.authReducer.auth?.user
+  );
+
+  // ================= CART FROM REDUX =================
+
+  const cartData = useSelector(
+    (state) => state.cartReducer.carts
+  );
+
+  // ================= LOCAL STATES =================
+
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  // ================= CART COUNT =================
+  // =====================================================
+  // CART COUNT
+  // =====================================================
 
-  const [cartCount, setCartCount] = useState(0);
+
+  const cartCount =
+    cartData?.totalQuantity ??
+    cartData?.cart?.totalQuantity ??
+    0;
 
   // ================= FETCH CURRENT USER =================
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/api/auth/me",
-          {
-            withCredentials: true,
-          }
-        );
-
-        setUser(response.data.user);
+        await dispatch(asyncCurrentUser());
       } catch (error) {
-        setUser(null);
+        console.log("Current user error:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCurrentUser();
-  }, []);
-
-  // ================= FETCH CART COUNT =================
-
-  useEffect(() => {
-    const fetchCartCount = async () => {
-      // Cart sirf normal user ke liye hai
-      if (!user || user.role !== "user") {
-        setCartCount(0);
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          "http://localhost:3002/api/carts",
-          {
-            withCredentials: true,
-          }
-        );
-
-        console.log("Cart response:", response.data);
-
-        const cart = response.data.cart;
-
-        // Number of products in cart
-        const count = cart?.items?.length || 0;
-
-        setCartCount(count);
-      } catch (error) {
-        console.log("Cart count error:", error);
-        setCartCount(0);
-      }
-    };
-
-    fetchCartCount();
-  }, [user]);
+  }, [dispatch]);
 
   // ================= LOGOUT =================
 
   const handleLogout = async () => {
     try {
-      await axios.get(
-        "http://localhost:3000/api/auth/logout",
-        {
-          withCredentials: true,
-        }
-      );
-
-      setUser(null);
-      setCartCount(0);
-      setProfileOpen(false);
-      setMenuOpen(false);
+      await dispatch(asyncauthLogout());
 
       navigate("/login");
     } catch (error) {
@@ -102,9 +76,12 @@ const Navbar = () => {
     setProfileOpen(false);
   };
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   return (
     <header className="navbar">
-
       <div className="navbar-container">
 
         {/* ================= LOGO ================= */}
@@ -117,7 +94,6 @@ const Navbar = () => {
           PWS<span>.</span>
         </Link>
 
-
         {/* ================= NAVIGATION ================= */}
 
         <nav
@@ -126,7 +102,7 @@ const Navbar = () => {
           }`}
         >
 
-          {/* HOME */}
+          {/* ================= HOME ================= */}
 
           <Link
             to="/"
@@ -135,8 +111,7 @@ const Navbar = () => {
             Home
           </Link>
 
-
-          {/* AI BUDDY */}
+          {/* ================= AI BUDDY ================= */}
 
           {user && (
             <Link
@@ -146,7 +121,6 @@ const Navbar = () => {
               ✨ AI Buddy
             </Link>
           )}
-
 
           {/* ================= USER ================= */}
 
@@ -158,7 +132,6 @@ const Navbar = () => {
               Orders
             </Link>
           )}
-
 
           {/* ================= SELLER ================= */}
 
@@ -193,16 +166,15 @@ const Navbar = () => {
               </Link>
             </>
           )}
-
         </nav>
-
 
         {/* ================= RIGHT SIDE ================= */}
 
         <div className="navbar-right">
 
-
-          {/* ================= CART ================= */}
+          {/* =================================================
+              CART
+          ================================================= */}
 
           {user?.role === "user" && (
             <Link
@@ -210,6 +182,8 @@ const Navbar = () => {
               className="cart-btn"
               onClick={closeMenus}
             >
+
+              {/* CART ICON */}
 
               <svg
                 width="21"
@@ -219,7 +193,6 @@ const Navbar = () => {
                 stroke="currentColor"
                 strokeWidth="2"
               >
-
                 <path d="M3 3h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6" />
 
                 <circle
@@ -233,7 +206,6 @@ const Navbar = () => {
                   cy="20"
                   r="1"
                 />
-
               </svg>
 
               {/* CART COUNT */}
@@ -241,12 +213,12 @@ const Navbar = () => {
               <span className="cart-count">
                 {cartCount}
               </span>
-
             </Link>
           )}
 
-
-          {/* ================= LOGGED OUT ================= */}
+          {/* =================================================
+              LOGGED OUT
+          ================================================= */}
 
           {!loading && !user && (
             <div className="auth-buttons">
@@ -270,8 +242,9 @@ const Navbar = () => {
             </div>
           )}
 
-
-          {/* ================= LOGGED IN ================= */}
+          {/* =================================================
+              LOGGED IN
+          ================================================= */}
 
           {!loading && user && (
             <div className="profile-menu-wrapper">
@@ -307,13 +280,14 @@ const Navbar = () => {
 
               </button>
 
-
-              {/* ================= DROPDOWN ================= */}
+              {/* =================================================
+                  PROFILE DROPDOWN
+              ================================================= */}
 
               {profileOpen && (
                 <div className="profile-dropdown">
 
-                  {/* PROFILE */}
+                  {/* ================= PROFILE ================= */}
 
                   <Link
                     to="/profile"
@@ -326,7 +300,6 @@ const Navbar = () => {
                     </span>
 
                     <span>
-
                       <strong>
                         Profile
                       </strong>
@@ -334,13 +307,11 @@ const Navbar = () => {
                       <small>
                         View your profile
                       </small>
-
                     </span>
 
                   </Link>
 
-
-                  {/* USER ORDERS */}
+                  {/* ================= USER ORDERS ================= */}
 
                   {user.role === "user" && (
                     <Link
@@ -354,7 +325,6 @@ const Navbar = () => {
                       </span>
 
                       <span>
-
                         <strong>
                           My Orders
                         </strong>
@@ -362,12 +332,10 @@ const Navbar = () => {
                         <small>
                           View your orders
                         </small>
-
                       </span>
 
                     </Link>
                   )}
-
 
                   {/* ================= SELLER PRODUCTS ================= */}
 
@@ -383,7 +351,6 @@ const Navbar = () => {
                       </span>
 
                       <span>
-
                         <strong>
                           My Products
                         </strong>
@@ -391,14 +358,12 @@ const Navbar = () => {
                         <small>
                           Manage your products
                         </small>
-
                       </span>
 
                     </Link>
                   )}
 
-
-                  {/* SELLER DASHBOARD */}
+                  {/* ================= SELLER DASHBOARD ================= */}
 
                   {user.role === "seller" && (
                     <Link
@@ -412,7 +377,6 @@ const Navbar = () => {
                       </span>
 
                       <span>
-
                         <strong>
                           Dashboard
                         </strong>
@@ -420,17 +384,16 @@ const Navbar = () => {
                         <small>
                           Manage your store
                         </small>
-
                       </span>
 
                     </Link>
                   )}
 
+                  {/* ================= DIVIDER ================= */}
 
                   <div className="dropdown-divider"></div>
 
-
-                  {/* LOGOUT */}
+                  {/* ================= LOGOUT ================= */}
 
                   <button
                     className="dropdown-logout"
@@ -453,8 +416,9 @@ const Navbar = () => {
             </div>
           )}
 
-
-          {/* ================= MOBILE MENU ================= */}
+          {/* =================================================
+              MOBILE MENU
+          ================================================= */}
 
           <button
             className="menu-toggle"
@@ -466,9 +430,7 @@ const Navbar = () => {
           </button>
 
         </div>
-
       </div>
-
     </header>
   );
 };

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import "./OrderDetailsModal.css";
 
-import { updateOrderStatus } from "../../services/seller.service";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { asyncupdateOrder } from "../../store/actions/sellerAction";
 
 function OrderDetailsModal({
   order,
@@ -12,11 +13,14 @@ function OrderDetailsModal({
   const [status, setStatus] = useState(order.status);
   const [loading, setLoading] = useState(false);
 
+
+const dispatch = useDispatch()
+
   async function handleUpdateStatus() {
     try {
       setLoading(true);
 
-      await updateOrderStatus(order._id, status);
+      await dispatch(asyncupdateOrder(order._id, status));
 
       onStatusUpdated(status);
 

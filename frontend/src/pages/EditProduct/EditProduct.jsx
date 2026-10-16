@@ -3,15 +3,14 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
 import "./EditProduct.css";
-
-import {
-  getProductById,
-  updateProduct,
-} from "../../services/product.service";
+import { useDispatch } from "react-redux";
+import { asyncgetProductById, asyncupdateproduct } from "../../store/actions/productAction";
 
 function EditProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+  
 
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -38,7 +37,7 @@ function EditProduct() {
     try {
       setLoading(true);
 
-      const response = await getProductById(id);
+      const response = await dispatch(asyncgetProductById(id));
       const data = response.data.data;
 
       setProduct(data);
@@ -74,7 +73,7 @@ function EditProduct() {
         priceCurrency: data.priceCurrency,
       };
 
-      await updateProduct(id, payload);
+      await dispatch(asyncupdateproduct(id, payload));
 
       alert("Product updated successfully");
 
@@ -92,8 +91,8 @@ function EditProduct() {
   }
 
   function handleCancel() {
-    navigate("/seller/products");
-  }
+  navigate("/products/seller");
+}
 
   if (loading) {
     return (

@@ -3,13 +3,20 @@ import "./OrderDetails.css";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { getOrderById } from "../../services/order.service";
+import { useDispatch, useSelector } from "react-redux";
+import { asyncgetorderById } from "../../store/actions/orderAction";
+
+
 
 function OrderDetails() {
+const dispatch = useDispatch();
+
+  const [order, setOrder] = useState(null);
+
+
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,11 +27,10 @@ function OrderDetails() {
     try {
       setLoading(true);
 
-      const response = await getOrderById(id);
+     const response = await dispatch(asyncgetorderById(id));
 
-      console.log("ORDER DETAILS 👉", response.data);
 
-      setOrder(response.data.order);
+setOrder(response.order);
     } catch (error) {
       console.log("GET ORDER DETAILS ERROR 👉", error);
     } finally {

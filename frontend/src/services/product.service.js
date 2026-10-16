@@ -1,48 +1,53 @@
 import axios from "axios";
 
-const API = "http://localhost:3001/api/products";
+const API_URL = "http://localhost:3001/api/products";
 
-export const getProducts = () => axios.get(API);
-
-
-export async function createProduct(formData) {
-  return axios.post(API_URL, formData, {
+// CREATE PRODUCT
+export const createProduct = async (formData) => {
+  return await axios.post(API_URL, formData, {
     withCredentials: true,
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
-}
+};
 
-export const getSellerProducts = () => {
-  return axios.get(
-    "http://localhost:3001/api/products/seller",
+// GET ALL PRODUCTS
+// GET PRODUCTS WITH PAGINATION
+export const getProducts = async ({
+  skip = 0,
+  limit = 6,
+} = {}) => {
+  return await axios.get(API_URL, {
+    withCredentials: true,
+    params: {
+      skip,
+      limit,
+    },
+  });
+};
+
+// GET PRODUCT BY ID
+export const getProductById = async (productId) => {
+  return await axios.get(`${API_URL}/${productId}`, {
+    withCredentials: true,
+  });
+};
+
+// UPDATE PRODUCT
+export const updateProduct = async (productId, formData) => {
+  return await axios.patch(
+    `${API_URL}/${productId}`,
+    formData,
     {
       withCredentials: true,
     }
   );
 };
 
-export const updateProduct = (id, data) => {
-  return axios.patch(
-    `http://localhost:3001/api/products/${id}`,
-    data,
-    {
-      withCredentials: true,
-    }
-  );
-};
-
-export const getProductById = (id) => {
-  return axios.get(
-    `http://localhost:3001/api/products/${id}`
-  );
-};
-
-
-
-export const deleteProduct = async (id) => {
-  return axios.delete(`${API}/${id}`, {
+// DELETE PRODUCT
+export const deleteProduct = async (productId) => {
+  return await axios.delete(`${API_URL}/${productId}`, {
     withCredentials: true,
   });
 };

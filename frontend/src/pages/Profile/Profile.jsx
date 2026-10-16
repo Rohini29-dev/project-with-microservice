@@ -1,31 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getCurrentUser } from "../../services/auth.service";
 import "./Profile.css";
+import { useDispatch, useSelector } from "react-redux";
+import {  asyncCurrentUser } from "../../store/actions/authActions";
 
 function Profile() {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+  const user = useSelector((state) => state.authReducer.auth?.user);
 
-  const [user, setUser] = useState(null);
+  // console.log('aAuth reduser',user);
+  
+
+  
+
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await getCurrentUser();
-
-        setUser(response.user);
-      } catch (error) {
-        console.log("Profile fetch error:", error);
-
-        setUser(null);
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      if (!user) {
+        await dispatch(asyncCurrentUser());
       }
-    };
+    } catch (error) {
+      console.log("Profile fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUser();
-  }, []);
+  fetchUser();
+}, [dispatch, user]);
+
 
   // Loading
   if (loading) {

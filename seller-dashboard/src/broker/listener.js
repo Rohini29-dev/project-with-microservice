@@ -7,6 +7,10 @@ const paymentModel = require("../models/payment.model");
 
 module.exports = async function () {
 
+  // =====================================================
+  // USER CREATED
+  // =====================================================
+
   subscribeToQueue(
     "AUTH_SELLER.USER_CREATED",
     async (data) => {
@@ -26,6 +30,7 @@ module.exports = async function () {
           console.log(
             `User already exists: ${data.email}`
           );
+
           return;
         }
 
@@ -35,44 +40,130 @@ module.exports = async function () {
   );
 
 
+  // =====================================================
+  // PRODUCT CREATED
+  // =====================================================
+
   subscribeToQueue(
     "PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED",
     async (product) => {
 
-      console.log("Received Product:", product);
+      try {
+        console.log("Received Product:", product);
 
-      await productModel.create(product);
+        await productModel.create(product);
+
+      } catch (error) {
+        console.error(
+          "PRODUCT CREATED ERROR =>",
+          error
+        );
+
+        throw error;
+      }
     }
   );
 
+
+  // =====================================================
+  // ORDER CREATED
+  // =====================================================
 
   subscribeToQueue(
     "ORDER_SELLER_DASHBOARD.ORDER_CREATED",
     async (order) => {
 
-      await orderModel.create(order);
+      try {
+        await orderModel.create(order);
+
+      } catch (error) {
+        console.error(
+          "ORDER CREATED ERROR =>",
+          error
+        );
+
+        throw error;
+      }
     }
   );
 
+
+  // =====================================================
+  // PAYMENT CREATED
+  // =====================================================
 
   subscribeToQueue(
     "PAYMENT_SELLER_DASHBOARD.PAYMENT_CREATED",
     async (payment) => {
 
-      await paymentModel.create(payment);
+      try {
+        await paymentModel.create(payment);
+
+      } catch (error) {
+        console.error(
+          "PAYMENT CREATED ERROR =>",
+          error
+        );
+
+        throw error;
+      }
     }
   );
 
+
+  // =====================================================
+  // PAYMENT UPDATE
+  // =====================================================
 
   subscribeToQueue(
-    "PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE",
-    async (payment) => {
+  "PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE",
+  async (payment) => {
 
-      await paymentModel.findOneAndUpdate(
-        { orderId: payment.orderId },
-        payment,
-        { new: true }
+    try {
+
+      console.log(
+        "Payment update received:",
+        payment
       );
+
+      const { _id, ...paymentUpdate } = payment;
+
+      const updatedPayment =
+        await paymentModel.findOneAndUpdate(
+          {
+            order: payment.order
+          },
+          {
+            $set: paymentUpdate
+          },
+          {
+            new: true
+          }
+        );
+
+      if (!updatedPayment) {
+
+        console.log(
+          `Payment not found for order: ${payment.order}`
+        );
+
+        return;
+      }
+
+      console.log(
+        "Payment successfully updated:",
+        updatedPayment
+      );
+
+    } catch (error) {
+
+      console.error(
+        "PAYMENT UPDATE ERROR =>",
+        error
+      );
+
+      throw error;
     }
-  );
+  }
+);
 };

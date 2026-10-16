@@ -26,6 +26,40 @@ export const updateCurrentUser = async (payload) => {
   return response.data;
 };
 
+export const registerUser = async (payload) => {
+  const response = await axios.post(
+    `${API_URL}/register`,
+    payload,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+};
+export const loginUser = async (payload) => {
+  const response = await axios.post(
+    `${API_URL}/login`,
+    payload,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+};
+export const logoutUser = async () => {
+  const response = await axios.get(
+    `${API_URL}/logout`,
+    {
+      withCredentials: true,
+    }
+  );
+
+  return response.data;
+};
+
+
 
 export const getUserAddresses = async () => {
   const response = await axios.get(

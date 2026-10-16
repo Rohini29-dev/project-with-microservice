@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  getUserAddresses,
-  addUserAddress,
-  deleteUserAddress,
-} from "../../services/auth.service";
+import { useDispatch } from "react-redux";
+
 import "./Addresses.css";
+import { asyncAddUserAddress, asyncDeleteUserAddress, asyncGetUserAddresses } from "../../store/actions/authActions";
 
 function Addresses() {
+const dispatch = useDispatch()
+
   const [addresses, setAddresses] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ function Addresses() {
       try {
 
         const response =
-          await getUserAddresses();
+        await dispatch(asyncGetUserAddresses())
 
         setAddresses(
           response.addresses || []
@@ -183,7 +183,7 @@ function Addresses() {
 
 
       const response =
-        await addUserAddress(payload);
+        await dispatch(asyncAddUserAddress(payload));
 
 
       setAddresses(
@@ -254,9 +254,7 @@ function Addresses() {
 
 
       const response =
-        await deleteUserAddress(
-          addressId
-        );
+        await dispatch(asyncDeleteUserAddress(addressId))
 
 
       setAddresses(

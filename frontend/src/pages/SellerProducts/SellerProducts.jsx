@@ -1,7 +1,14 @@
 import "./SellerProducts.css";
+
 import { useEffect, useMemo, useState } from "react";
-import { getProducts, deleteProduct } from "../../services/seller.service";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+
+import {
+  asyncdeleteproduct,
+  asyncGetProduct,
+} from "../../store/actions/sellerAction";
 
 function SellerProducts() {
   const [products, setProducts] = useState([]);
@@ -9,6 +16,11 @@ function SellerProducts() {
   const [search, setSearch] = useState("");
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // ===============================
+  // FETCH SELLER PRODUCTS
+  // ===============================
 
   useEffect(() => {
     fetchProducts();
@@ -16,14 +28,38 @@ function SellerProducts() {
 
   async function fetchProducts() {
     try {
-      const response = await getProducts();
-      setProducts(response.data);
+      setLoading(true);
+
+      const response = await dispatch(asyncGetProduct());
+
+      console.log(
+        "SELLER PRODUCTS RESPONSE =>",
+        response
+      );
+
+      // asyncGetProduct directly returns data
+      // data is already an array
+      setProducts(response || []);
     } catch (error) {
-      console.log("GET PRODUCTS ERROR =>", error);
+      console.log(
+        "GET PRODUCTS ERROR =>",
+        error
+      );
+
+      setProducts([]);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to load products"
+      );
     } finally {
       setLoading(false);
     }
   }
+
+  // ===============================
+  // DELETE PRODUCT
+  // ===============================
 
   async function handleDelete(id) {
     const ok = window.confirm(
@@ -33,32 +69,58 @@ function SellerProducts() {
     if (!ok) return;
 
     try {
-      await deleteProduct(id);
+      await dispatch(
+        asyncdeleteproduct(id)
+      );
 
+      // Remove deleted product from UI
       setProducts((prevProducts) =>
-        prevProducts.filter((product) => product._id !== id)
+        prevProducts.filter(
+          (product) => product._id !== id
+        )
+      );
+
+      // Success Toast
+      toast.success(
+        "Product deleted successfully!"
       );
     } catch (error) {
-      console.log("DELETE PRODUCT ERROR =>", error);
+      console.log(
+        "DELETE PRODUCT ERROR =>",
+        error
+      );
 
-      alert(
+      // Error Toast
+      toast.error(
         error.response?.data?.message ||
           "Failed to delete product"
       );
     }
   }
 
+  // ===============================
+  // SEARCH
+  // ===============================
+
   const filteredProducts = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
+    const searchValue = search
+      .trim()
+      .toLowerCase();
 
     if (!searchValue) {
       return products;
     }
 
     return products.filter((product) =>
-      product.title?.toLowerCase().includes(searchValue)
+      product.title
+        ?.toLowerCase()
+        .includes(searchValue)
     );
   }, [products, search]);
+
+  // ===============================
+  // LOADING
+  // ===============================
 
   if (loading) {
     return (
@@ -68,16 +130,23 @@ function SellerProducts() {
 
           <h2>Loading Products...</h2>
 
-          <p>Please wait while we fetch your products.</p>
+          <p>
+            Please wait while we fetch your
+            products.
+          </p>
         </div>
       </section>
     );
   }
 
+  // ===============================
+  // UI
+  // ===============================
+
   return (
     <section className="seller-products-page">
 
-      {/* Header */}
+      {/* ================= HEADER ================= */}
 
       <div className="products-header">
 
@@ -90,8 +159,8 @@ function SellerProducts() {
           <h1>My Products</h1>
 
           <p>
-            Manage your products, prices and inventory
-            from one place.
+            Manage your products, prices and
+            inventory from one place.
           </p>
 
         </div>
@@ -115,7 +184,9 @@ function SellerProducts() {
             <button
               type="button"
               className="clear-search"
-              onClick={() => setSearch("")}
+              onClick={() =>
+                setSearch("")
+              }
               aria-label="Clear search"
             >
               ×
@@ -126,30 +197,34 @@ function SellerProducts() {
 
       </div>
 
-
-      {/* Summary */}
+      {/* ================= SUMMARY ================= */}
 
       <div className="products-summary">
 
         <div>
           Showing{" "}
-          <strong>{filteredProducts.length}</strong>{" "}
+          <strong>
+            {filteredProducts.length}
+          </strong>{" "}
           of{" "}
-          <strong>{products.length}</strong>{" "}
+          <strong>
+            {products.length}
+          </strong>{" "}
           products
         </div>
 
         {search && (
           <p>
             Search results for{" "}
-            <strong>"{search}"</strong>
+            <strong>
+              "{search}"
+            </strong>
           </p>
         )}
 
       </div>
 
-
-      {/* Products */}
+      {/* ================= PRODUCTS ================= */}
 
       {filteredProducts.length === 0 ? (
 
@@ -175,7 +250,9 @@ function SellerProducts() {
             <button
               type="button"
               className="clear-filter-btn"
-              onClick={() => setSearch("")}
+              onClick={() =>
+                setSearch("")
+              }
             >
               Clear Search
             </button>
@@ -187,141 +264,146 @@ function SellerProducts() {
 
         <div className="products-grid">
 
-          {filteredProducts.map((product) => {
+          {filteredProducts.map(
+            (product) => {
 
-            const stock = Number(product.stock) || 0;
+              const stock =
+                Number(product.stock) || 0;
 
-            return (
-              <article
-                className="product-card"
-                key={product._id}
-              >
+              return (
+                <article
+                  className="product-card"
+                  key={product._id}
+                >
 
-                {/* Image */}
+                  {/* ================= IMAGE ================= */}
 
-                <div className="product-image">
+                  <div className="product-image">
 
-                  <img
-                    src={
-                      product.images?.[0]?.url ||
-                      "https://placehold.co/600x400?text=No+Image"
-                    }
-                    alt={product.title}
-                    loading="lazy"
-                  />
+                    <img
+                      src={
+                        product.images?.[0]
+                          ?.url ||
+                        "https://placehold.co/600x400?text=No+Image"
+                      }
+                      alt={
+                        product.title ||
+                        "Product"
+                      }
+                      loading="lazy"
+                    />
 
-                  <span
-                    className={`stock-badge ${
-                      stock > 0
-                        ? "in-stock"
-                        : "out-stock"
-                    }`}
-                  >
-                    <span className="stock-dot"></span>
+                    <span
+                      className={`stock-badge ${
+                        stock > 0
+                          ? "in-stock"
+                          : "out-stock"
+                      }`}
+                    >
 
-                    {stock > 0
-                      ? "In Stock"
-                      : "Out of Stock"}
-                  </span>
+                      <span className="stock-dot"></span>
 
-                </div>
+                      {stock > 0
+                        ? "In Stock"
+                        : "Out of Stock"}
 
-
-                {/* Content */}
-
-                <div className="product-content">
-
-                  <div className="product-heading">
-
-                    <h2>
-                      {product.title}
-                    </h2>
+                    </span>
 
                   </div>
 
+                  {/* ================= CONTENT ================= */}
 
-                  <p className="description">
-                    {product.description ||
-                      "No description available."}
-                  </p>
+                  <div className="product-content">
 
+                    <div className="product-heading">
 
-                  {/* Product Info */}
-
-                  <div className="product-info">
-
-                    <div className="info-box">
-
-                      <span>
-                        Price
-                      </span>
-
-                      <strong>
-                        ₹
-                        {product.price?.amount ||
-                          0}
-                      </strong>
+                      <h2>
+                        {product.title}
+                      </h2>
 
                     </div>
 
+                    <p className="description">
+                      {product.description ||
+                        "No description available."}
+                    </p>
 
-                    <div className="info-box">
+                    {/* ================= PRODUCT INFO ================= */}
 
-                      <span>
-                        Stock
-                      </span>
+                    <div className="product-info">
 
-                      <strong
-                        className={`stock-number ${
-                          stock <= 0
-                            ? "out"
-                            : ""
-                        }`}
+                      <div className="info-box">
+
+                        <span>
+                          Price
+                        </span>
+
+                        <strong>
+                          ₹
+                          {product.price
+                            ?.amount || 0}
+                        </strong>
+
+                      </div>
+
+                      <div className="info-box">
+
+                        <span>
+                          Stock
+                        </span>
+
+                        <strong
+                          className={`stock-number ${
+                            stock <= 0
+                              ? "out"
+                              : ""
+                          }`}
+                        >
+                          {stock}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+                    {/* ================= ACTIONS ================= */}
+
+                    <div className="product-footer">
+
+                      <button
+                        type="button"
+                        className="edit-btn"
+                        onClick={() =>
+                          navigate(
+                            `/products/${product._id}/edit`
+                          )
+                        }
                       >
-                        {stock}
-                      </strong>
+                        <span>✎</span>
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="delete-btn"
+                        onClick={() =>
+                          handleDelete(
+                            product._id
+                          )
+                        }
+                      >
+                        <span>🗑</span>
+                        Delete
+                      </button>
 
                     </div>
 
                   </div>
 
-
-                  {/* Actions */}
-
-                  <div className="product-footer">
-
-                    <button
-                      type="button"
-                      className="edit-btn"
-                      onClick={() =>
-                        navigate(
-                          `/products/${product._id}/edit`
-                        )
-                      }
-                    >
-                      <span>✎</span>
-                      Edit
-                    </button>
-
-
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() =>
-                        handleDelete(product._id)
-                      }
-                    >
-                      <span>🗑</span>
-                      Delete
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </article>
-            );
-          })}
+                </article>
+              );
+            }
+          )}
 
         </div>
 

@@ -1,4 +1,3 @@
-import { createPayment, verifyPayment } from "../../services/payment.service";
 import loadRazorpay from "../../utils/loadRazorpay";
 import "./Checkout.css";
 import { useEffect, useState } from "react";
@@ -6,15 +5,16 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-import { getCart } from "../../services/cart.service";
-import {
-  createOrder,
-} from "../../services/order.service";
+import { useDispatch } from "react-redux";
+import { asynccreatePayment, asyncvarifyPayment } from "../../store/actions/paymentAction";
+import { asyncloadCart } from "../../store/actions/cartAction";
+import { asyncCreateOrder } from "../../store/actions/orderAction";
 
 
 
 function Checkout() {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const {
     register,
@@ -32,7 +32,7 @@ function Checkout() {
 
   async function fetchCart() {
     try {
-      const cartRes = await getCart();
+      const cartRes = await dispatch(asyncloadCart());
 
       const items = cartRes.data.cart.items;
 
@@ -71,7 +71,7 @@ function Checkout() {
  async function onSubmit(data) {
   try {
     // 1. Create Order
-    const orderResponse = await createOrder(data);
+    const orderResponse = await dispatch(asyncCreateOrder(data));
 
     console.log("ORDER RESPONSE 👉", orderResponse.data);
 
@@ -90,7 +90,7 @@ function Checkout() {
     }
 
     // 3. Create Payment
-    const paymentResponse = await createPayment(order._id);
+    const paymentResponse = await dispatch(asynccreatePayment(order._id));
 
     console.log(
       "PAYMENT RESPONSE 👉",
@@ -121,11 +121,11 @@ function Checkout() {
           );
 
           // 5. Verify Payment
-          const verifyResponse = await verifyPayment({
+          const verifyResponse = await dispatch(asyncvarifyPayment({
             razorpayOrderId: response.razorpay_order_id,
             paymentId: response.razorpay_payment_id,
             signature: response.razorpay_signature,
-          });
+          }));
 
           console.log(
             "VERIFY RESPONSE 👉",

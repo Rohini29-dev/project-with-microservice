@@ -2,13 +2,18 @@ const cookieParser = require("cookie-parser")
 const express = require("express")
 const sellerRoute = require('./routes/seller.routes')
 const app = express()
+const cors = require('cors')
+
+
 
 
 app.use(express.json())
 app.use(cookieParser())
-app.get("/api/test", (req, res) => {
-  res.json({ message: "working" });
-});
+app.use(cors({
+  origin:'http://localhost:5173',
+  credentials:true
+}))
+
 
 app.get('/',(req,res)=>{
 res.status(200).json({message:"Seller Dashboard service is running"});

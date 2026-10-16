@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+
 
 import "./CreateProduct.css";
-import { createProduct } from "../../services/product.service";
+import { asynccreateProduct } from "../../store/actions/productAction";
 
 function CreateProduct() {
   const navigate = useNavigate();
+    const dispatch = useDispatch();
+
 
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,45 +32,110 @@ function CreateProduct() {
   const description = watch("description");
   const priceAmount = watch("priceAmount");
   const stock = watch("stock");
+  const priceCurrency = watch("priceCurrency");
 
+  /*
+   * Create preview URLs only when images change.
+   * This avoids creating new object URLs on every render.
+   */
+  const [imagePreviews, setImagePreviews] = useState([]);
+
+  useEffect(() => {
+    const previews = images.map((image) => ({
+      file: image,
+      url: URL.createObjectURL(image),
+    }));
+
+    setImagePreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => {
+        URL.revokeObjectURL(preview.url);
+      });
+    };
+  }, [images]);
+
+  /*
+   * Handle image selection
+   */
   function handleImageChange(e) {
     const files = Array.from(e.target.files || []);
 
-    setImages(files);
-  }
+    if (!files.length) return;
 
-  async function submitHandler(data) {
-    try {
-      setLoading(true);
-
-      const formData = new FormData();
-
-      formData.append("title", data.title);
-      formData.append("description", data.description || "");
-      formData.append("priceAmount", data.priceAmount);
-      formData.append("priceCurrency", data.priceCurrency);
-      formData.append("stock", data.stock);
-
-      images.forEach((image) => {
-        formData.append("images", image);
-      });
-
-      await createProduct(formData);
-
-      toast.success("Product created successfully!");
-
-      navigate("/products/seller");
-    } catch (error) {
-      console.log("CREATE PRODUCT ERROR =>", error);
-
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to create product."
+    setImages((prevImages) => {
+      const existingKeys = new Set(
+        prevImages.map(
+          (image) => `${image.name}-${image.size}-${image.lastModified}`
+        )
       );
-    } finally {
-      setLoading(false);
-    }
+
+      const newImages = files.filter(
+        (image) =>
+          !existingKeys.has(
+            `${image.name}-${image.size}-${image.lastModified}`
+          )
+      );
+
+      return [...prevImages, ...newImages];
+    });
+
+    // Allows selecting the same file again after removing it.
+    e.target.value = "";
   }
+
+  /*
+   * Remove one image
+   */
+  function removeImage(indexToRemove) {
+    setImages((prevImages) =>
+      prevImages.filter((_, index) => index !== indexToRemove)
+    );
+  }
+
+  /*
+   * Submit product
+   */
+  async function submitHandler(data) {
+  try {
+    setLoading(true);
+
+    const formData = new FormData();
+
+    formData.append("title", data.title);
+    formData.append("description", data.description || "");
+    formData.append("priceAmount", data.priceAmount);
+    formData.append("priceCurrency", data.priceCurrency);
+    formData.append("stock", data.stock);
+
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
+
+    // Check FormData
+    console.log("FORM DATA:");
+
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    // Wait for Redux thunk
+    await dispatch(asynccreateProduct(formData));
+
+toast.success("Product created successfully!");
+navigate("/seller/products");
+
+  } catch (error) {
+    console.log("CREATE PRODUCT ERROR =>", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to create product."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <section className="create-product-page">
@@ -273,6 +342,7 @@ function CreateProduct() {
                     }`}
                     type="number"
                     min="0"
+                    step="1"
                     placeholder="Enter available quantity"
                     {...register("stock", {
                       required: "Stock is required",
@@ -281,6 +351,7 @@ function CreateProduct() {
                         message:
                           "Stock cannot be negative",
                       },
+                      valueAsNumber: true,
                     })}
                   />
 
@@ -327,7 +398,7 @@ function CreateProduct() {
                   </strong>
 
                   <span>
-                    PNG, JPG or WEBP
+                    PNG, JPG or WEBP • You can select multiple images
                   </span>
 
                   <input
@@ -340,26 +411,55 @@ function CreateProduct() {
 
                 </label>
 
-                {images.length > 0 && (
+                {/* Selected Images */}
+                {imagePreviews.length > 0 && (
                   <div className="selected-images">
 
-                    {images.map((image, index) => (
+                    {imagePreviews.map((preview, index) => (
                       <div
                         className="selected-image"
-                        key={`${image.name}-${index}`}
+                        key={`${preview.file.name}-${preview.file.size}-${preview.file.lastModified}`}
                       >
+
                         <img
-                          src={URL.createObjectURL(image)}
+                          src={preview.url}
                           alt={`Product ${index + 1}`}
                         />
 
-                        <span>
+                        {/* Image number */}
+                        <span className="image-number">
                           {index + 1}
                         </span>
+
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          className="remove-image-button"
+                          onClick={() => removeImage(index)}
+                          aria-label={`Remove image ${index + 1}`}
+                          title="Remove image"
+                        >
+                          ×
+                        </button>
+
+                        {/* Main image badge */}
+                        {index === 0 && (
+                          <span className="main-image-badge">
+                            Main
+                          </span>
+                        )}
+
                       </div>
                     ))}
 
                   </div>
+                )}
+
+                {images.length > 0 && (
+                  <p className="image-count">
+                    {images.length}{" "}
+                    {images.length === 1 ? "image" : "images"} selected
+                  </p>
                 )}
 
               </div>
@@ -419,11 +519,12 @@ function CreateProduct() {
 
             <div className="preview-content">
 
+              {/* Preview Image */}
               <div className="preview-image">
 
-                {images.length > 0 ? (
+                {imagePreviews.length > 0 ? (
                   <img
-                    src={URL.createObjectURL(images[0])}
+                    src={imagePreviews[0].url}
                     alt="Product preview"
                   />
                 ) : (
@@ -435,6 +536,7 @@ function CreateProduct() {
 
               </div>
 
+              {/* Preview Details */}
               <div className="preview-details">
 
                 <span className="preview-label">
@@ -452,22 +554,26 @@ function CreateProduct() {
 
               </div>
 
+              {/* Preview Bottom */}
               <div className="preview-bottom">
 
                 <div>
                   <span>PRICE</span>
 
                   <strong>
-                    ₹{priceAmount || "0"}
+                    {priceCurrency === "USD" ? "$" : "₹"}
+                    {priceAmount || "0"}
                   </strong>
                 </div>
 
                 <div className="preview-stock">
+
                   <span>STOCK</span>
 
                   <strong>
-                    {stock || 0}
+                    {stock ?? 0}
                   </strong>
+
                 </div>
 
               </div>

@@ -1,62 +1,206 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { addToCart } from "../../services/cart.service";
-import { getProductById } from "../../services/product.service";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  asyncdeleteproduct,
+  asyncgetProductById,
+} from "../../store/actions/productAction";
+
+import { asyncAddCart } from "../../store/actions/cartAction";
 
 import "./ProductDetails.css";
-import { toast } from "react-toastify";
-
 
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [product, setProduct] = useState(null);
+  // =========================================
+  // REDUX
+  // =========================================
+
+  const product = useSelector(
+    (state) => state.productReducer.singleProduct
+  );
+
+  const user = useSelector(
+    (state) => state.authReducer.auth?.user
+  );
+
+
+  console.log("SINGLE PRODUCT FROM REDUX =>", product);
+
+  // =========================================
+  // STATE
+  // =========================================
+
   const [selectedImage, setSelectedImage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+
+  // =========================================
+  // FETCH PRODUCT
+  // =========================================
 
   useEffect(() => {
-    fetchProduct();
+    if (id) {
+      fetchProduct();
+    }
   }, [id]);
 
   async function fetchProduct() {
     try {
       setLoading(true);
 
-      const response = await getProductById(id);
+      const response = await dispatch(
+        asyncgetProductById(id)
+      );
 
-      const productData = response.data.data;
+      const productData = response;
 
-      setProduct(productData);
-
-      if (productData.images?.length) {
-        setSelectedImage(productData.images[0].url);
+      if (productData?.images?.length > 0) {
+        setSelectedImage(
+          productData.images[0]?.url || ""
+        );
+      } else {
+        setSelectedImage("");
       }
     } catch (error) {
-      console.log(error);
+      console.error(
+        "Product fetch error:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Unable to load product."
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleAddToCart() {
-  try {
-    const response = await addToCart(product._id, 1);
+  // =========================================
+  // CHECK PRODUCT OWNER
+  // =========================================
 
-    toast.success(
-      response.data.message || "Product added to cart!"
+  const productSellerId =
+    typeof product?.seller === "object"
+      ? product?.seller?._id
+      : product?.seller;
+
+  const currentUserId =
+    user?._id || user?.id;
+
+  const isSeller =
+    user?.role === "seller";
+
+  const isProductOwner =
+    isSeller &&
+    productSellerId &&
+    currentUserId &&
+    String(productSellerId) ===
+      String(currentUserId);
+
+  // =========================================
+  // ADD TO CART
+  // =========================================
+
+  async function handleAddToCart() {
+    try {
+      if (!product?._id) {
+        toast.error("Product not found.");
+        return;
+      }
+
+      const response = await dispatch(
+        asyncAddCart(product._id, 1)
+      );
+
+      toast.success(
+        response?.data?.message ||
+          "Product added to cart!"
+      );
+    } catch (error) {
+      console.error(
+        "Add to cart error:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Unable to add product."
+      );
+    }
+  }
+
+  // =========================================
+  // DELETE PRODUCT
+  // =========================================
+
+  async function handleDeleteProduct() {
+    if (!product?._id) {
+      toast.error("Product not found.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${product.title}"?`
     );
 
-  } catch (error) {
-    console.error(error);
+    if (!confirmed) {
+      return;
+    }
 
-    toast.error(
-      error.response?.data?.message ||
-        "Unable to add product."
+    try {
+      setDeleting(true);
+
+      const response = await dispatch(
+        asyncdeleteproduct(product._id)
+      );
+
+      toast.success(
+        response?.data?.message ||
+          "Product deleted successfully!"
+      );
+
+      navigate("/seller/products");
+    } catch (error) {
+      console.error(
+        "Delete product error:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Unable to delete product."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // =========================================
+  // EDIT PRODUCT
+  // =========================================
+
+  function handleEditProduct() {
+    if (!product?._id) {
+      toast.error("Product not found.");
+      return;
+    }
+
+    navigate(
+      `/products/${product._id}/edit`
     );
   }
-}
 
-  /* ================= LOADING ================= */
+  // =========================================
+  // LOADING
+  // =========================================
 
   if (loading) {
     return (
@@ -64,44 +208,79 @@ function ProductDetails() {
         <div className="product-loading">
           <div className="details-spinner"></div>
 
-          <h2>Loading product...</h2>
-
-          <p>Please wait while we fetch the product details.</p>
-        </div>
-      </main>
-    );
-  }
-
-  /* ================= NOT FOUND ================= */
-
-  if (!product) {
-    return (
-      <main className="product-details-page">
-        <div className="product-not-found">
-          <div className="not-found-icon">🛍️</div>
-
-          <h2>Product not found</h2>
+          <h2>
+            Loading product...
+          </h2>
 
           <p>
-            The product you're looking for may have
-            been removed or is unavailable.
+            Please wait while we fetch
+            the product details.
           </p>
         </div>
       </main>
     );
   }
 
+  // =========================================
+  // PRODUCT NOT FOUND
+  // =========================================
+
+  if (!product) {
+    return (
+      <main className="product-details-page">
+        <div className="product-not-found">
+          <div className="not-found-icon">
+            🛍️
+          </div>
+
+          <h2>
+            Product not found
+          </h2>
+
+          <p>
+            The product you're looking for
+            may have been removed or is
+            unavailable.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+          >
+            Back to Home
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // =========================================
+  // STOCK
+  // =========================================
+
+  const stockQuantity =
+    Number(product.stock ?? 0);
+
+  const isOutOfStock =
+    stockQuantity <= 0;
+
+  // =========================================
+  // JSX
+  // =========================================
+
   return (
     <main className="product-details-page">
-
       <section className="product-details">
 
-        {/* ================= GALLERY ================= */}
+        {/* =====================================
+            PRODUCT GALLERY
+        ===================================== */}
 
         <div className="gallery">
 
-          <div className="main-image">
+          {/* Main Image */}
 
+          <div className="main-image">
             {selectedImage ? (
               <img
                 src={selectedImage}
@@ -110,73 +289,120 @@ function ProductDetails() {
             ) : (
               <div className="image-placeholder">
                 <span>🛍️</span>
-                <p>No Image</p>
+
+                <p>
+                  No Image
+                </p>
               </div>
             )}
-
           </div>
-
 
           {/* Thumbnails */}
 
           {product.images?.length > 0 && (
             <div className="thumbnail-container">
-
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className={`thumbnail ${
-                    selectedImage === image.url
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setSelectedImage(image.url)
-                  }
-                >
-                  <img
-                    src={image.url}
-                    alt={`${product.title} ${index + 1}`}
-                  />
-                </button>
-              ))}
-
+              {product.images.map(
+                (image, index) => (
+                  <button
+                    key={`${image.url}-${index}`}
+                    type="button"
+                    className={`thumbnail ${
+                      selectedImage === image.url
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setSelectedImage(
+                        image.url
+                      )
+                    }
+                  >
+                    <img
+                      src={image.url}
+                      alt={`${product.title} ${
+                        index + 1
+                      }`}
+                    />
+                  </button>
+                )
+              )}
             </div>
           )}
-
         </div>
 
-
-        {/* ================= PRODUCT INFO ================= */}
+        {/* =====================================
+            PRODUCT INFORMATION
+        ===================================== */}
 
         <div className="product-info">
 
-          <span className="product-label">
-            Product Details
-          </span>
+          {/* Top Row */}
 
+          <div className="details-top-row">
+            <span className="product-label">
+              Product Details
+            </span>
+
+            {isProductOwner && (
+              <span className="owner-badge">
+                Your Product
+              </span>
+            )}
+          </div>
+
+          {/* Product Title */}
 
           <h1>
             {product.title}
           </h1>
 
+          {/* Price */}
 
           <div className="price-section">
-
             <span className="price-label">
               Price
             </span>
 
             <h2>
-              ₹{product.price?.amount}
-            </h2>
+              {product.price?.currency === "USD"
+                ? "$"
+                : "₹"}
 
+              {product.price?.amount}
+            </h2>
           </div>
 
+          {/* Stock */}
+
+          <div className="stock-section">
+            <div className="stock-icon">
+              {isOutOfStock
+                ? "!"
+                : "✓"}
+            </div>
+
+            <div className="stock-info">
+              <span>
+                Availability
+              </span>
+
+              <strong
+                className={
+                  isOutOfStock
+                    ? "out-of-stock"
+                    : "in-stock"
+                }
+              >
+                {isOutOfStock
+                  ? "Out of stock"
+                  : `${stockQuantity} available`}
+              </strong>
+            </div>
+          </div>
+
+          {/* Description */}
 
           <div className="description-section">
-
             <h3>
               Description
             </h3>
@@ -185,47 +411,112 @@ function ProductDetails() {
               {product.description ||
                 "No description available."}
             </p>
-
           </div>
-
 
           {/* Seller */}
 
           <div className="seller-box">
-
             <div className="seller-icon">
               👤
             </div>
 
             <div className="seller-info">
-
               <span>
                 Sold by
               </span>
 
               <strong>
-                {product.seller || "Seller"}
+                {typeof product.seller ===
+                "object"
+                  ? product.seller?.username ||
+                    product.seller?.fullName ||
+                    "Seller"
+                  : "Seller"}
               </strong>
-
             </div>
-
           </div>
 
+          {/* =====================================
+              SELLER OWNER ACTIONS
+          ===================================== */}
 
-          {/* Add to cart */}
+          {isProductOwner && (
+            <div className="seller-actions">
 
-          <button
-            className="add-cart-btn"
-            onClick={handleAddToCart}
-          >
-            <span>🛒</span>
-            Add to Cart
-          </button>
+              {/* Edit */}
 
+              <button
+                type="button"
+                className="edit-product-btn"
+                onClick={handleEditProduct}
+                disabled={deleting}
+              >
+                <span>
+                  ✎
+                </span>
+
+                Edit Product
+              </button>
+
+              {/* Delete */}
+
+              <button
+                type="button"
+                className="delete-product-btn"
+                onClick={handleDeleteProduct}
+                disabled={deleting}
+              >
+                <span>
+                  🗑
+                </span>
+
+                {deleting
+                  ? "Deleting..."
+                  : "Delete Product"}
+              </button>
+            </div>
+          )}
+
+          {/* =====================================
+              NORMAL USER - ADD TO CART
+          ===================================== */}
+
+          {user?.role === "user" && (
+            <button
+              type="button"
+              className="add-cart-btn"
+              onClick={handleAddToCart}
+              disabled={isOutOfStock}
+            >
+              <span>
+                🛒
+              </span>
+
+              {isOutOfStock
+                ? "Out of Stock"
+                : "Add to Cart"}
+            </button>
+          )}
+
+          {/* =====================================
+              SELLER VIEWING OTHER SELLER PRODUCT
+          ===================================== */}
+
+          {isSeller &&
+            !isProductOwner && (
+              <div className="seller-view-message">
+                <span>
+                  ℹ
+                </span>
+
+                <p>
+                  You are viewing another
+                  seller's product.
+                </p>
+              </div>
+            )}
         </div>
-
       </section>
-
     </main>
   );
 }

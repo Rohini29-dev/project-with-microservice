@@ -1,20 +1,41 @@
-const express = require('express')
-const validationMiddlweare = require('../middlewares/validation.middleware')
-const cartController = require('../controllers/cart.controller')
-const {createAuthMiddlewere}  = require('../middlewares/auth.controller') 
+const express = require("express");
 
-const routes = express.Router()
+const validationMiddleware = require("../middlewares/validation.middleware");
+const cartController = require("../controllers/cart.controller");
+const {
+  createAuthMiddlewere,
+} = require("../middlewares/auth.controller");
 
-routes.post('/',validationMiddlweare.validationaddItemTOCart,createAuthMiddlewere(['user']),cartController.addItemToCarts)  
+const routes = express.Router();
 
-routes.patch('/items/:productId',validationMiddlweare.validateUpdateCartItem,createAuthMiddlewere(['user']),cartController.updateItemQuantity)
+// Add item to cart
+routes.post(
+  "/",
+  validationMiddleware.validationaddItemTOCart,
+  createAuthMiddlewere(["user"]),
+  cartController.addItemToCarts
+);
 
-routes.get('/',createAuthMiddlewere(['user']),cartController.getCart)
+// Update cart item quantity
+routes.patch(
+  "/items/:productId",
+  validationMiddleware.validateUpdateCartItem,
+  createAuthMiddlewere(["user"]),
+  cartController.updateItemQuantity
+);
 
+// Get cart
+routes.get(
+  "/",
+  createAuthMiddlewere(["user"]),
+  cartController.getCart
+);
+
+// Remove item
 routes.delete(
   "/items/:productId",
   createAuthMiddlewere(["user"]),
   cartController.removeCartItem
 );
 
-module.exports = routes 
+module.exports = routes;

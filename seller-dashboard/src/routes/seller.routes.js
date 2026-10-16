@@ -34,5 +34,10 @@ routes.patch(
   controller.updateOrderStatus
 );
 
+routes.delete(
+  "/products/:id",
+  createAuthMiddlewere(["seller"]),
+  controller.deleteProduct
+);
 
 module.exports = routes;

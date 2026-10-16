@@ -2,9 +2,13 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { asyncauthRegister } from "../store/actions/authActions";
+import {toast} from 'react-toastify'
 
 function Register() {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const {
     register,
@@ -24,25 +28,19 @@ function Register() {
       },
     };
 
-    console.log(payload);
-
+    // console.log(payload);
+    
     try {
-      await axios.post(
-        "http://localhost:3000/api/auth/register",
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
-
+      
+      dispatch(asyncauthRegister(payload))
       navigate("/");
     } catch (error) {
       console.error(error);
-
-      alert(
-        error.response?.data?.message ||
-          "Unable to create account."
-      );
+toast.error(error.response?.data?.message || "Unable to create account.")
+      // alert(
+      //   error.response?.data?.message ||
+      //     "Unable to create account."
+      // );
     }
   };
 

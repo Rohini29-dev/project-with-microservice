@@ -6,23 +6,17 @@ import App from "./App";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { store } from './store/store'
+import { Provider } from 'react-redux'
 
 import "./styles/global.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
     <BrowserRouter>
+    <Provider store={store}>
       <App />
+    </Provider>
 
-      <ToastContainer
-        position="top-right"
-        autoClose={2500}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        theme="light"
-      />
+      <ToastContainer/>
     </BrowserRouter>
-  </React.StrictMode>
 );

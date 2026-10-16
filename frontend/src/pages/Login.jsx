@@ -1,10 +1,14 @@
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
-import axios from "axios";
+
+import { useDispatch } from "react-redux";
+import { asyncauthLogin } from "../store/actions/authActions";
+import { toast } from "react-toastify";
 
 function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -13,30 +17,20 @@ function Login() {
   } = useForm();
 
   const submitHandler = async (data) => {
-    const payload = {
-      email: data.email,
-      password: data.password,
-    };
+  try {
+    await dispatch(asyncauthLogin(data));
 
-    try {
-      await axios.post(
-        "http://localhost:3000/api/auth/login",
-        payload,
-        {
-          withCredentials: true,
-        }
-      );
+    navigate("/");
+  } catch (error) {
+    console.error("LOGIN ERROR =>", error);
 
-      navigate("/");
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.response?.data?.message ||
-          "Invalid email or password"
-      );
-    }
-  };
+    toast.error(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Invalid email or password"
+    );
+  }
+};
 
   return (
     <div className="login-page">
@@ -108,6 +102,7 @@ function Login() {
           <div className="input-group">
 
             <div className="password-label">
+
               <label htmlFor="password">
                 Password
               </label>
@@ -118,6 +113,7 @@ function Login() {
               >
                 Forgot password?
               </button>
+
             </div>
 
             <input
@@ -153,6 +149,7 @@ function Login() {
         {/* REGISTER */}
         <p className="auth-link">
           Don't have an account?{" "}
+
           <Link to="/register">
             Create an account
           </Link>

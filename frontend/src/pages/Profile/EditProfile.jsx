@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  getCurrentUser,
-  updateCurrentUser,
-} from "../../services/auth.service";
 import "./EditProfile.css";
+
+import { useDispatch, useSelector } from "react-redux";
+
+import {
+  asyncCurrentUser,
+  asyncUpdateUser,
+} from "../../store/actions/authActions";
 
 function EditProfile() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // ================= GET USER FROM REDUX =================
+
+  const user = useSelector(
+    (state) => state.authReducer.auth?.user
+  );
+
+  // ================= FORM STATE =================
 
   const [formData, setFormData] = useState({
     username: "",
@@ -22,55 +34,53 @@ function EditProfile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-
-  // ================= FETCH USER =================
+  // ================= FETCH CURRENT USER =================
 
   useEffect(() => {
-
     const fetchUser = async () => {
-
       try {
+        console.log("Fetching current user...");
 
-        const response = await getCurrentUser();
-
-        const user = response.user;
-
-        setFormData({
-          username: user.username || "",
-          email: user.email || "",
-          firstName:
-            user.fullName?.firstName || "",
-          lastName:
-            user.fullName?.lastName || "",
-        });
-
+        await dispatch(asyncCurrentUser());
       } catch (error) {
+        console.log("Fetch user error =>", error);
 
-        console.log(
-          "Fetch user error:",
-          error
-        );
-
-        setError(
-          "Unable to load your profile."
-        );
-
+        setError("Unable to load your profile.");
       } finally {
-
         setLoading(false);
-
       }
     };
 
-    fetchUser();
+    // Agar Redux me user already available hai
+    // to API call ki zarurat nahi hai
 
-  }, []);
+    if (!user) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+  }, [dispatch, user]);
 
+  // ================= SET USER DATA IN FORM =================
+
+  useEffect(() => {
+    if (user) {
+      console.log("User from Redux =>", user);
+
+      setFormData({
+        username: user.username || "",
+        email: user.email || "",
+        firstName: user.fullName?.firstName || "",
+        lastName: user.fullName?.lastName || "",
+      });
+
+      setLoading(false);
+    }
+  }, [user]);
 
   // ================= INPUT CHANGE =================
 
   const handleChange = (e) => {
-
     const { name, value } = e.target;
 
     setFormData((prev) => ({
@@ -80,129 +90,146 @@ function EditProfile() {
 
     setError("");
     setSuccess("");
-
   };
-
 
   // ================= SUBMIT =================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
+    // ================= VALIDATION =================
 
     if (!formData.username.trim()) {
-
-      setError(
-        "Username is required."
-      );
-
+      setError("Username is required.");
       return;
     }
-
 
     if (!formData.email.trim()) {
-
-      setError(
-        "Email is required."
-      );
-
+      setError("Email is required.");
       return;
     }
 
+    if (!formData.firstName.trim()) {
+      setError("First name is required.");
+      return;
+    }
+
+    if (!formData.lastName.trim()) {
+      setError("Last name is required.");
+      return;
+    }
 
     try {
-
       setSaving(true);
 
+      // ================= UPDATE PAYLOAD =================
 
       const payload = {
+        username: formData.username.trim(),
 
-        username:
-          formData.username.trim(),
-
-        email:
-          formData.email.trim(),
+        email: formData.email.trim(),
 
         fullName: {
-
-          firstName:
-            formData.firstName.trim(),
-
-          lastName:
-            formData.lastName.trim(),
-
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
         },
-
       };
 
+      console.log("UPDATE PAYLOAD =>", payload);
 
-      const response =
-        await updateCurrentUser(payload);
+      // ================= UPDATE USER USING REDUX =================
 
+      const response = await dispatch(
+        asyncUpdateUser(payload)
+      );
+
+      console.log("UPDATE RESPONSE =>", response);
+
+      // ================= CHECK ERROR =================
+
+      if (response?.error) {
+        throw new Error(
+          response?.error?.message ||
+            "Unable to update profile."
+        );
+      }
+
+      // ================= SUCCESS =================
 
       setSuccess(
-        response.message ||
+        response?.message ||
+          response?.payload?.message ||
           "Profile updated successfully."
       );
 
+      /*
+        IMPORTANT:
+
+        Yahan asyncCurrentUser() call MAT karna.
+
+        Kyunki asyncUpdateUser ke andar updated user
+        Redux me already save ho raha hai.
+
+        Agar yahan asyncCurrentUser() call kiya,
+        to old JWT user Redux ko overwrite kar sakta hai.
+      */
+
+      // ================= NAVIGATE =================
 
       setTimeout(() => {
-
         navigate("/profile");
-
-      }, 1000);
+      }, 800);
 
     } catch (error) {
-
-      console.log(
-        "Update profile error:",
-        error
-      );
+      console.log("UPDATE PROFILE ERROR =>", error);
 
       setError(
-        error.response?.data?.message ||
+        error?.response?.data?.message ||
+          error?.message ||
           "Unable to update profile."
       );
-
     } finally {
-
       setSaving(false);
-
     }
-
   };
-
 
   // ================= LOADING =================
 
   if (loading) {
-
     return (
       <div className="edit-profile-loading">
-
         <div className="edit-profile-spinner"></div>
 
-        <p>
-          Loading profile...
-        </p>
-
+        <p>Loading profile...</p>
       </div>
     );
-
   }
 
+  // ================= USER NOT FOUND =================
+
+  if (!user) {
+    return (
+      <div className="edit-profile-loading">
+        <h2>Please login to edit your profile</h2>
+
+        <Link to="/login">
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
+
+  // ================= UI =================
 
   return (
     <div className="edit-profile-page">
 
       <div className="edit-profile-container">
 
-
-        {/* HEADER */}
+        {/* ================= HEADER ================= */}
 
         <div className="edit-profile-top">
 
@@ -213,9 +240,7 @@ function EditProfile() {
             ← Back to Profile
           </Link>
 
-          <h1>
-            Edit Profile
-          </h1>
+          <h1>Edit Profile</h1>
 
           <p>
             Update your personal information
@@ -223,13 +248,11 @@ function EditProfile() {
 
         </div>
 
-
-        {/* FORM */}
+        {/* ================= FORM CARD ================= */}
 
         <div className="edit-profile-card">
 
-
-          {/* ERROR */}
+          {/* ================= ERROR ================= */}
 
           {error && (
             <div className="edit-message error-message">
@@ -237,8 +260,7 @@ function EditProfile() {
             </div>
           )}
 
-
-          {/* SUCCESS */}
+          {/* ================= SUCCESS ================= */}
 
           {success && (
             <div className="edit-message success-message">
@@ -246,11 +268,9 @@ function EditProfile() {
             </div>
           )}
 
-
           <form onSubmit={handleSubmit}>
 
-
-            {/* USERNAME */}
+            {/* ================= USERNAME ================= */}
 
             <div className="edit-form-group">
 
@@ -269,8 +289,7 @@ function EditProfile() {
 
             </div>
 
-
-            {/* EMAIL */}
+            {/* ================= EMAIL ================= */}
 
             <div className="edit-form-group">
 
@@ -289,8 +308,7 @@ function EditProfile() {
 
             </div>
 
-
-            {/* FIRST NAME */}
+            {/* ================= FIRST NAME ================= */}
 
             <div className="edit-form-group">
 
@@ -309,8 +327,7 @@ function EditProfile() {
 
             </div>
 
-
-            {/* LAST NAME */}
+            {/* ================= LAST NAME ================= */}
 
             <div className="edit-form-group">
 
@@ -329,8 +346,7 @@ function EditProfile() {
 
             </div>
 
-
-            {/* BUTTONS */}
+            {/* ================= BUTTONS ================= */}
 
             <div className="edit-form-actions">
 

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { changePassword } from "../../services/auth.service";
 import "./ChangePassword.css";
+import { useDispatch } from "react-redux";
+import { asyncChangePassword } from "../../store/actions/authActions";
 
 function ChangePassword() {
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -116,13 +118,13 @@ function ChangePassword() {
       setLoading(true);
 
 
-      const response = await changePassword({
+      const response = await dispatch(asyncChangePassword({
         currentPassword:
           formData.currentPassword,
 
         newPassword:
           formData.newPassword,
-      });
+      }));
 
 
       setSuccess(

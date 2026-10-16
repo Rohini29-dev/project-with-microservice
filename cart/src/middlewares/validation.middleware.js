@@ -36,10 +36,10 @@ const validateUpdateCartItem = [
     .withMessage("Invalid productId format"),
 
   body("qty")
-  .notEmpty()
-  .withMessage("qty is required")
-  .isInt({ min: 1 })
-  .withMessage("Quantity must be a positive integer"),
+    .notEmpty()
+    .withMessage("qty is required")
+    .isInt()
+    .withMessage("Quantity must be an integer"),
 
   validateResult,
 ];

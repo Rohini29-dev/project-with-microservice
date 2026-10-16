@@ -204,6 +204,36 @@ async function getProducts(req, res) {
   }
 }
 
+async function deleteProduct(req, res) {
+  try {
+    const seller = req.user;
+    const productId = req.params.id;
+
+    const product = await productModel.findOne({
+      _id: productId,
+      seller: seller.id || seller._id,
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found or unauthorized",
+      });
+    }
+
+    await productModel.findByIdAndDelete(productId);
+
+    return res.status(200).json({
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    console.log("DELETE PRODUCT ERROR =>", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+}
+
 async function getSingleOrder(req, res) {
   try {
 
@@ -367,5 +397,6 @@ module.exports = {
   getOrder,
   getProducts,
   getSingleOrder,
-  updateOrderStatus
+  updateOrderStatus,
+  deleteProduct
 };

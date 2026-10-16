@@ -2,6 +2,7 @@ const express = require('express')
 const validateMiddlware = require('../middlewares/validation.middleware.js')
 const authController = require('../controllers/auth.controllers.js')
 const authMiddleware = require('../middlewares/auth.middleware.js')
+const passport = require("passport");
 
 
 const routes = express.Router()
@@ -9,13 +10,25 @@ const routes = express.Router()
 routes.post('/register',validateMiddlware.registerUserValidation,authController.registerUserController)
 routes.post('/login',validateMiddlware.loginUserValidation,authController.loginUserController),
 routes.get('/me',authMiddleware.authMiddleware,authController.getCurrentUser)
+routes.put(
+  '/users/me',
+  authMiddleware.authMiddleware,
+  authController.updateCurrentUser
+);
+
+routes.put(
+  '/users/me/password',
+  authMiddleware.authMiddleware,
+  authController.changePassword
+);
+
 routes.get('/logout',authController.logOutUser)
 
-router.get('/google',
+routes.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-router.get('/google/callback',
+routes.get('/google/callback',
   passport.authenticate('google', { session: false }),authController.googleAuthCallback);
 
 

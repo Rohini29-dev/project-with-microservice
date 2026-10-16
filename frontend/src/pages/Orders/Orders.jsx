@@ -1,16 +1,30 @@
 import "./Orders.css";
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useDispatch, useSelector } from "react-redux";
+
+import { toast } from "react-toastify";
+
 import {
-  getMyOrders,
-  cancelOrder,
-} from "../../services/order.service";
+  asyncCancelOrder,
+  asyncGetOrder,
+} from "../../store/actions/orderAction";
 
 function Orders() {
-  const [orders, setOrders] = useState([]);
+  const dispatch = useDispatch();
+
+  const orders = useSelector(
+    (state) => state.orderReducer.orders || []
+  );
+
+  console.log("orderReducer-------->", orders);
+
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState(null);
+
+  /* ================= GET ORDERS ================= */
 
   useEffect(() => {
     fetchOrders();
@@ -20,20 +34,23 @@ function Orders() {
     try {
       setLoading(true);
 
-      const response = await getMyOrders();
+      await dispatch(asyncGetOrder());
 
-      setOrders(response.data.orders || []);
     } catch (error) {
       console.log("GET ORDERS ERROR 👉", error);
 
-      alert(
-        error.response?.data?.message ||
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
           "Unable to fetch orders."
       );
+
     } finally {
       setLoading(false);
     }
   }
+
+  /* ================= CANCEL ORDER ================= */
 
   async function handleCancel(id) {
     const ok = window.confirm(
@@ -45,30 +62,46 @@ function Orders() {
     try {
       setCancellingId(id);
 
-      const response = await cancelOrder(id);
+      const response = await dispatch(
+        asyncCancelOrder(id)
+      );
 
-      alert(response.data.message);
+      console.log(
+        "CANCEL ORDER RESPONSE =>",
+        response
+      );
+
+      toast.success(
+        response?.message ||
+          "Order cancelled successfully!"
+      );
 
       await fetchOrders();
-    } catch (error) {
-      console.log("CANCEL ORDER ERROR 👉", error);
 
-      alert(
-        error.response?.data?.message ||
+    } catch (error) {
+      console.log(
+        "CANCEL ORDER ERROR 👉",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
           "Unable to cancel order."
       );
+
     } finally {
       setCancellingId(null);
     }
   }
 
-  /* ---------------- STATUS CLASS ---------------- */
+  /* ================= STATUS CLASS ================= */
 
   function getStatusClass(status) {
     return status?.toLowerCase() || "pending";
   }
 
-  /* ---------------- ORDER MESSAGE ---------------- */
+  /* ================= ORDER MESSAGE ================= */
 
   function getOrderMessage(status) {
     switch (status) {
@@ -92,7 +125,7 @@ function Orders() {
     }
   }
 
-  /* ---------------- PAYMENT STATUS ---------------- */
+  /* ================= PAYMENT STATUS ================= */
 
   function getPaymentStatus(status) {
     if (status === "CANCELLED") {
@@ -121,12 +154,11 @@ function Orders() {
     return paymentStatus.toLowerCase();
   }
 
-  /* ---------------- LOADING ---------------- */
+  /* ================= LOADING ================= */
 
   if (loading) {
     return (
       <section className="orders-page">
-
         <div className="orders-loading">
 
           <div className="loading-spinner"></div>
@@ -138,7 +170,6 @@ function Orders() {
           </p>
 
         </div>
-
       </section>
     );
   }
@@ -216,7 +247,7 @@ function Orders() {
           <div className="orders-list">
 
             {orders.map((order) => {
-
+console.log("FULL ORDER 👉", order);
               const paymentStatus =
                 getPaymentStatus(order.status);
 
@@ -243,7 +274,6 @@ function Orders() {
                         #{order._id.slice(-8)}
                       </h3>
 
-                      {/* Dynamic message */}
                       <p
                         className={`order-date ${statusClass}`}
                       >
@@ -403,15 +433,10 @@ function Orders() {
                       </p>
 
                       <p>
-
                         {order.shippingAddress?.city},{" "}
-
                         {order.shippingAddress?.state}
-
                         {" - "}
-
                         {order.shippingAddress?.pincode}
-
                       </p>
 
                       <p>

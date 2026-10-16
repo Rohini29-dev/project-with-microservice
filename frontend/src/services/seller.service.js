@@ -9,12 +9,9 @@ export function getMetrics() {
 }
 
 export function getOrders(page = 1, limit = 5) {
-  return axios.get(
-    `${API}/orders?page=${page}&limit=${limit}`,
-    {
-      withCredentials: true,
-    }
-  );
+  return axios.get(`${API}/orders?page=${page}&limit=${limit}`, {
+    withCredentials: true,
+  });
 }
 
 export function getProducts() {
@@ -30,21 +27,19 @@ export function getOrderById(id) {
 }
 
 export async function updateOrderStatus(orderId, status) {
-
   return axios.patch(
     `${API}/orders/${orderId}/status`,
     {
-      status
+      status,
     },
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
-
 }
 
 export function deleteProduct(id) {
-  return axios.delete(`${API}/${id}`, {
+  return axios.delete(`${API}/products/${id}`, {
     withCredentials: true,
   });
 }
