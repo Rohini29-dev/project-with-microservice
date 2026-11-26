@@ -50,18 +50,7 @@ function Login() {
           </p>
         </div>
 
-        {/* GOOGLE */}
-        <button
-          type="button"
-          className="google-btn"
-        >
-          <img
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
-          />
-
-          <span>Continue with Google</span>
-        </button>
+     
 
         {/* DIVIDER */}
         <div className="divider">

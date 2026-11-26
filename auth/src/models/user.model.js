@@ -24,10 +24,21 @@ email:{
     required:true,
     unique:true
 },
-password:{
-    type:String,
-    select:true
-},
+
+ googleId:{
+        type:String
+    },
+
+// password:{
+//     type:String,
+//     select:true
+// },
+
+
+ password:{
+        type:String,
+        required: function() {return !this.googleId}
+    },
 fullName:{
     firstName:{
         type:String,

@@ -358,86 +358,7 @@ async function deleteUserAddress(req, res) {
   }
 }
 
-// =========================================
-// GOOGLE AUTH CALLBACK
-// =========================================
 
-async function googleAuthCallback(req, res) {
-  const user = req.user;
-
-  const isUserAlreadyExist = await userModel.findOne({
-    $or: [
-      {
-        email: user.emails[0].value,
-      },
-      {
-        googleId: user.id,
-      },
-    ],
-  });
-
-  if (isUserAlreadyExist) {
-    const token = jwt.sign(
-      {
-        id: isUserAlreadyExist.id,
-        email: isUserAlreadyExist.email,
-        fullName: isUserAlreadyExist.fullName,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "2d",
-      }
-    );
-
-    res.cookie("token", token);
-
-    if (user.role === "artist") {
-      return res.redirect(
-        "http://localhost:5173/artist/dashboard"
-      );
-    }
-
-    if (isUserAlreadyExist === "artist") {
-      return res.redirect(
-        "http://localhost:5173/artist/dashboard"
-      );
-    }
-
-    return res.redirect("http://localhost:5173");
-  }
-
-  const newUser = await userModel.create({
-    googleId: user.id,
-    email: user.emails[0].value,
-    fullName: {
-      firstName: user.name.givenName,
-      lastName: user.name.familyName,
-    },
-  });
-
-  await publishToQueue("user_create", {
-    id: newUser.id,
-    email: newUser.email,
-    fullName: newUser.fullName,
-    role: newUser.role,
-  });
-
-  const token = jwt.sign(
-    {
-      id: newUser.id,
-      role: newUser.role,
-      fullName: newUser.fullName,
-    },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "2d",
-    }
-  );
-
-  res.cookie("token", token);
-
-  res.redirect("http://localhost:5173");
-}
 
 async function updateCurrentUser(req, res) {
   try {
@@ -665,7 +586,6 @@ module.exports = {
   getUserAddress,
   addUserAddress,
   deleteUserAddress,
-  googleAuthCallback,
   updateCurrentUser,
   changePassword
 };

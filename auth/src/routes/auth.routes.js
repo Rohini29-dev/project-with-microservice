@@ -2,7 +2,6 @@ const express = require('express')
 const validateMiddlware = require('../middlewares/validation.middleware.js')
 const authController = require('../controllers/auth.controllers.js')
 const authMiddleware = require('../middlewares/auth.middleware.js')
-const passport = require("passport");
 
 
 const routes = express.Router()
@@ -24,12 +23,9 @@ routes.put(
 
 routes.get('/logout',authController.logOutUser)
 
-routes.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
 
-routes.get('/google/callback',
-  passport.authenticate('google', { session: false }),authController.googleAuthCallback);
+
+
 
 
 routes.get('/users/me/addresses',authMiddleware.authMiddleware,authController.getUserAddress)
